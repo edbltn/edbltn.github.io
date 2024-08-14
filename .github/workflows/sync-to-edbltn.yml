@@ -20,5 +20,5 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git remote add edbltn https://$PAT@github.com/edbltn/edbltn.github.io.git
+        git remote add edbltn $PAT@github.com:edbltn/edbltn.github.io.git
         git push edbltn main:main --force
