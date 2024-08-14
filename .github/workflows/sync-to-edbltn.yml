@@ -14,14 +14,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Configure Git
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.DEPLOY_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+    - name: Push to edbltn.github.io
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-
-    - name: Push to GitHub Pages
-      env:
-        PAT: ${{ secrets.PAT_FOR_SYNC }}
-      run: |
-        git remote set-url origin https://${PAT}@github.com/edbltn/edbltn.github.io.git
-        git push origin main:main --force
+        git remote add edbltn git@github.com:edbltn/edbltn.github.io.git
+        git push edbltn main:main --force
