@@ -23,5 +23,5 @@ jobs:
       env:
         PAT: ${{ secrets.PAT }}
       run: |
-        git remote add edbltn https://$PAT@github.com:edbltn/edbltn.github.io.git
+        git remote add edbltn https://$PAT@github.com/edbltn/edbltn.github.io.git
         git push edbltn main:main --force
