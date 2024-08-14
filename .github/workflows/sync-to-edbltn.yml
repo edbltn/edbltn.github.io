@@ -37,7 +37,3 @@ jobs:
         # Add remote and push
         git remote add edbltn git@github.com:edbltn/edbltn.github.io.git
         git push edbltn sync-branch:main --force
-
-        # Clean up
-        git checkout main
-        git branch -D sync-branch
