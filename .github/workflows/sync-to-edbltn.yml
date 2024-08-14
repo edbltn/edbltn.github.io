@@ -22,7 +22,17 @@ jobs:
 
     - name: Push to edbltn.github.io
       run: |
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
+        # Create a new branch for syncing
+        git checkout -b sync-branch
+
+        # Remove .github directory
+        git rm -r --cached .github
+        git commit -m "Remove .github directory for sync"
+
+        # Add remote and push
         git remote add edbltn git@github.com:edbltn/edbltn.github.io.git
-        git push edbltn main:main --force
+        git push edbltn sync-branch:main --force
+
+        # Clean up
+        git checkout main
+        git branch -D sync-branch
