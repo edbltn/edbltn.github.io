@@ -5,17 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eric Bolton</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
-        body {
-            font-family: 'Libre Baskerville', serif;
-            background-color: #FAF8EF;
-            color: #333333;
-            margin: 0;
-            padding: 0;
-            padding-bottom: 60px;
-            display: flex;
-            justify-content: center;
+        @font-face {
+            font-family: 'Libre Caslon Text';
+            src: url('./assets/LibreCaslonText-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
+
+        @font-face {
+            font-family: 'Public Sans';
+            src: url('./assets/PublicSans-VariableFont_wght.ttf') format('truetype');
+        }
+
+        /* Replace the body font-family line */
+        body {
+            background-color: #FAF8EF;
+            margin: 0;  /* Add this line */
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 0 20px;
+            margin: 0 auto;  /* Add this line */
+        }
+
+        /* Add these font rules */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Libre Caslon Text', serif;
+            font-weight: normal;
+        }
+
+        p, li, input, button, footer, header, div {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 400;
+        }
+        li {
+            padding: 2px 0;  /* 8px top/bottom, 0 left/right */
+        }
+
+        em {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        strong {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 600;
+        }
+
         .signature a {
             color: #AAA8AA;
             font-size: 0.8em;
@@ -23,12 +62,8 @@
         }
         .signature {
             color: #FAF8EF;
-            margin-top: 10px;
         }
-        .container {
-            max-width: 800px; width: 100%;
-            padding: 0 20px;
-        }
+
         header {
             background-color: #333333;
             color: #FAF8EF;
@@ -51,12 +86,49 @@
         nav a:hover {
             background-color: #555555;
         }
+
         section {
             padding: 10px 20px;
             margin: 10px 0;
+            margin-top: 0;
+            padding-top: 0;
             background-color: #FAF8EF;
-            border: 1px solid rgb(175, 174, 163); /* Updated border color */
+            border: none;
+            position: relative;
         }
+
+        /* Bottom line */
+        section::after {
+            content: '';
+            position: absolute;
+            width: calc(100% - 20px);
+            height: 1px;
+            background: rgb(175, 174, 163);
+            left: 10px;
+            bottom: -5px;
+        }
+
+        /* Left and right lines */
+        section::before {
+            content: '';
+            position: absolute;
+            left: 0px;
+            top: 5px;
+            bottom: 10px;
+            width: 1px;
+            background: rgb(175, 174, 163);
+        }
+
+        section > :first-child::before {
+            content: '';
+            position: absolute;
+            right: 0px;
+            top: 5px;
+            bottom: 10px;
+            width: 1px;
+            background: rgb(175, 174, 163);
+        }
+
         footer {
             padding: 0.1px;
             background-color: #333333;
@@ -64,22 +136,41 @@
             text-align: center;
             width: 100%;
         }
+
+        #socials::after {
+            display: none;  /* removes bottom line */
+        }
+
         .socials {
             display: flex;
             justify-content: left;
             gap: 10px;
             margin-top: 10px;
         }
+
         .socials a {
             color: #333333;
             text-decoration: none;
             font-weight: bold;
         }
+        .profile-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .profile-image {
+            margin-top: 20px;
+            width: 174px;
+            height: 174px;
+            object-fit: cover;
+
+        }
         .small-image {
-            width: 550px; /* Adjust the width as needed */
+            width: 550px;
             height: auto;
             display: block;
-            margin: 0 auto; /* Center the image */
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -88,23 +179,40 @@
 <div class="container">
     <header>
         <h1>Eric Bolton</h1>
-        <p>AI Researcher | Computational Journalist | Creator of <a href="http://aiportrait.wsj.com" target="_blank" style="color: #FAF8EF;">aiportrait.wsj.com</a></p>
+        <p>CTO at <a href="https://newswyze.com/" target="_blank" style="color: #FAF8EF;">NewsWyze</a> | AI Researcher | Creator of <a href="http://aiportrait.wsj.com" target="_blank" style="color: #FAF8EF;">aiportrait.wsj.com</a></p>
     </header>
 
     <section id="about">
-        <h2>About Me</h2>
-        <p>NYC-based software engineer specializing in NLP and developing large language models for journalism and politics. I'm passionate about ways AI can improve the exchange of information and knowledge between humans.</p>
-        <img src="image.png" alt="Kaleidoscope Image" class="small-image">
+        <div class="profile-container">
+            <img src="me.png" alt="Eric Bolton" class="profile-image">
+            <div>
+                <h2>Hello!</h2>
+                <p>I'm an NYC-based software engineer specializing in <strong>natural language processing</strong> and <strong>large language models</strong>. I'm passionate about ways AI can improve the exchange of knowledge and information between humans.</p>
+                <p>At <a href="https://newswyze.com/" target="_blank">NewsWyze</a>, where I serve as CTO, we help newsrooms like <a href="https://rfa.org/" target="_blank">Radio Free Asia</a>, <a href="https://www.benarnews.org/" target="_blank">BenarNews</a>, and <a href="https://www.radiofarda.com/" target="_blank">RadioFarda</a> reach wider audiences by <strong>automatically translating and summarizing</strong> news stories.</p>            </div>
+        </div>
+        <p>Our technology has helped these organizations cut their editorial processing time by <strong>85 percent</strong>, making their journalism more accessible across language barriers while maintaining high editorial standards.</p>
+
+        <p>I'm particularly fascinated by how AI can transform the way information flows between cultures and across languages. If you're curious about this too, or working on similar challenges in journalism and content distribution, I'd love to chat.</p>
     </section>
 
     <section id="blog">
-        <h2>Blog</h2>
-        <p><a href="https://bolton.substack.com" target="_blank"><strong>Candid Selfie</strong></a>: A semi-periodic snapshot of where my head is at. New posts every Sunday.</p>
+        <h2>Blogs</h2>
+        <ul>
+            <li><a href="https://bolton.substack.com" target="_blank"><strong>Candid Selfie</strong></a>: A semi-periodic snapshot of where my head is at. New posts every Sunday.</li>
+            <li><a href="https://alignedforesight.substack.com/about" target="_blank"><strong>Aligned Foresight</strong></a>: Data-driven reporting on superforecasting, AI, politics, and society, focused on measuring today's public opinion and predicting tomorrow's.</li>
+        </ul>
     </section>
 
     <section id="projects">
         <h2>Projects</h2>
-        <p>I'm currently attending the <a href="https://www.recurse.com/" target="_blank">Recurse Center</a>, where I'm deepening my understanding of large language models and <a href="https://en.wikipedia.org/wiki/Explainable_artificial_intelligence#Interpretability" target="_blank">mechanistic interpretability</a>.</p>
+           <ul>
+               <li><a href="https://frontier-beat.github.io/" target="_blank"><strong>Frontier Beat</strong></a>: An AI-powered platform that tracks and summarizes trending research papers from ArXiv and their associated GitHub repositories.</li>
+               <li><a href="https://show-me-the-ballot.glitch.me/" target="_blank"><strong>Show me the Ballot!</strong></a>: A web app that helps first-time voters preview their ballot information by searching their location, making voting information more accessible and less intimidating.</li>
+           </ul>
+    </section>
+
+    <section id="articles">
+
         <h2>Articles & Publications</h2>
         <ul>
             <li><a href="https://arxiv.org/abs/2012.00209" target="_blank">High Quality Real-Time Structured Debate Generation</a></li>
@@ -125,16 +233,15 @@
 
     <footer>
         <p>&copy; 2024 Eric Bolton. All rights reserved.</p>
-        <p class="signature"><a 
-      href="https://buymeacoffee.com/ericbolton" 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="buy-me-coffee"
-    >☕️ Buy me a brew?</a>
-</p>
+        <p class="signature"><a
+              href="https://buymeacoffee.com/ericbolton"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="buy-me-coffee"
+            >☕️ Buy me a brew?</a>
+        </p>
     </footer>
 </div>
 
 </body>
 </html>
-

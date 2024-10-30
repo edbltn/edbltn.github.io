@@ -1,3 +1,3 @@
 function alertButton() {
-    alert("Hello world!")
+    alert("Schrödinger's server: is it up or down? Yes!")
 }
