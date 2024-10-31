@@ -30,13 +30,39 @@
             margin: 0 auto;  /* Add this line */
         }
 
+        .profile-container {
+            margin: 0;
+            padding: 0;
+        }
+
+        .profile-image {
+            margin-top: 20px;
+            width: 174px;
+            height: 174px;
+            object-fit: cover;
+            float: left;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* Add a clearfix to prevent layout issues */
+        .profile-container::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
         /* Add these font rules */
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Libre Caslon Text', serif;
             font-weight: normal;
         }
 
-        p, li, input, button, footer, header, div {
+        div {
+            margin: 0;
+            padding: 0;
+        }
+        p, li, input, button, footer, header, div, em, strong {
             font-family: 'Public Sans', sans-serif;
             font-weight: 400;
         }
@@ -45,13 +71,10 @@
         }
 
         em {
-            font-family: 'Public Sans', sans-serif;
-            font-weight: 400;
             font-style: italic;
         }
 
         strong {
-            font-family: 'Public Sans', sans-serif;
             font-weight: 600;
         }
 
@@ -113,7 +136,7 @@
             content: '';
             position: absolute;
             left: 0px;
-            top: 5px;
+            top: 0px;
             bottom: 10px;
             width: 1px;
             background: rgb(175, 174, 163);
@@ -123,7 +146,7 @@
             content: '';
             position: absolute;
             right: 0px;
-            top: 5px;
+            top: 0px;
             bottom: 10px;
             width: 1px;
             background: rgb(175, 174, 163);
@@ -146,6 +169,8 @@
             justify-content: left;
             gap: 10px;
             margin-top: 10px;
+            padding-bottom: -10px;
+            margin-bottom: 10px;
         }
 
         .socials a {
@@ -153,12 +178,7 @@
             text-decoration: none;
             font-weight: bold;
         }
-        .profile-container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
+
         .profile-image {
             margin-top: 20px;
             width: 174px;
@@ -185,14 +205,13 @@
     <section id="about">
         <div class="profile-container">
             <img src="me.png" alt="Eric Bolton" class="profile-image">
-            <div>
-                <h2>Hello!</h2>
-                <p>I'm an NYC-based software engineer specializing in <strong>natural language processing</strong> and <strong>large language models</strong>. I'm passionate about ways AI can improve the exchange of knowledge and information between humans.</p>
-                <p>At <a href="https://newswyze.com/" target="_blank">NewsWyze</a>, where I serve as CTO, we help newsrooms like <a href="https://rfa.org/" target="_blank">Radio Free Asia</a>, <a href="https://www.benarnews.org/" target="_blank">BenarNews</a>, and <a href="https://www.radiofarda.com/" target="_blank">RadioFarda</a> reach wider audiences by <strong>automatically translating and summarizing</strong> news stories.</p>            </div>
-        </div>
-        <p>Our technology has helped these organizations cut their editorial processing time by <strong>85 percent</strong>, making their journalism more accessible across language barriers while maintaining high editorial standards.</p>
+            <h2>Hello!</h2>
+                <p>I'm an NYC-based software engineer specializing in <strong>natural language processing</strong> and <strong>large language models</strong> for journalism. I'm passionate about ways AI can improve the exchange of knowledge and information between humans.</p>
+                <p>At <a href="https://newswyze.com/" target="_blank">NewsWyze</a>, where I serve as CTO, we help newsrooms like <a href="https://rfa.org/" target="_blank">Radio Free Asia</a>, <a href="https://www.benarnews.org/" target="_blank">BenarNews</a>, and <a href="https://www.radiofarda.com/" target="_blank">RadioFarda</a> reach wider audiences by <strong>automatically translating and summarizing</strong> news stories.</p>
+                <p>Our technology has helped these organizations cut their editorial processing time by <strong>85 percent</strong>, making their journalism more accessible across language barriers while maintaining high editorial standards.</p>
 
-        <p>I'm particularly fascinated by how AI can transform the way information flows between cultures and across languages. If you're curious about this too, or working on similar challenges in journalism and content distribution, I'd love to chat.</p>
+                <p>I'm particularly fascinated by how AI can transform the way information flows between cultures and across languages. If you're curious about this too, or working on similar challenges in journalism and content distribution, <a href="https://calendly.com/eric-didier-bolton/coffee">I'd love to chat</a>.</p>
+        </div>
     </section>
 
     <section id="blog">
@@ -207,7 +226,7 @@
         <h2>Projects</h2>
            <ul>
                <li><a href="https://frontier-beat.github.io/" target="_blank"><strong>Frontier Beat</strong></a>: An AI-powered platform that tracks and summarizes trending research papers from ArXiv and their associated GitHub repositories.</li>
-               <li><a href="https://show-me-the-ballot.glitch.me/" target="_blank"><strong>Show me the Ballot!</strong></a>: A web app that helps first-time voters preview their ballot information by searching their location, making voting information more accessible and less intimidating.</li>
+               <li><a href="https://show-me-the-ballot.glitch.me/" target="_blank"><strong>Show me the Ballot!</strong></a>: A web app that helps first-time voters preview their ballot information, making voting information more accessible and less intimidating.</li>
            </ul>
     </section>
 
