@@ -22,6 +22,21 @@
             background-color: #FAF8EF;
             margin: 0;  /* Add this line */
         }
+        /* Decrease indent of bullets */
+        ul {
+            padding-left: 30px;  /* Default is 40px, reduce to bring bullets closer to left */
+        }
+
+        /* Increase spacing after each bullet point */
+        li {
+            padding: 2px 0;  /* You already have this */
+            margin-bottom: 5px;  /* Add this to increase space after each bullet */
+        }
+
+        /* Remove extra space after last bullet */
+        li:last-child {
+            margin-bottom: 0;
+        }
 
         .container {
             max-width: 800px;
@@ -55,8 +70,16 @@
 
         /* Add these font rules */
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Libre Caslon Text', serif;
-            font-weight: normal;
+            font-family: 'Public Sans', serif;
+            font-weight: 400;
+        }
+
+        section h2 {
+            text-align: center;
+        }
+
+        #about h2 {
+            text-align: left;
         }
 
         div {
@@ -65,7 +88,7 @@
         }
         p, li, input, button, footer, header, div, em, strong {
             font-family: 'Public Sans', sans-serif;
-            font-weight: 400;
+            font-weight: 200;
         }
         li {
             padding: 2px 0;  /* 8px top/bottom, 0 left/right */
@@ -76,11 +99,11 @@
         }
 
         strong {
-            font-weight: 600;
+            font-weight: 400;
         }
 
         .signature a {
-            color: #AAA8AA;
+            color: #333333;
             font-size: 0.8em;
             text-decoration: none;
         }
@@ -94,12 +117,14 @@
             padding: 10px;
             text-align: center;
         }
+
         nav {
             display: flex;
             justify-content: center;
             background-color: #333333;
             margin: 0;
         }
+
         nav a {
             color: #FAF8EF;
             padding: 10px;
@@ -107,18 +132,26 @@
             text-align: center;
             font-weight: bold;
         }
+
         nav a:hover {
             background-color: #555555;
         }
 
         section {
-            padding: 10px 20px;
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-bottom: 20px;
             margin: 10px 0;
             margin-top: 0;
-            padding-top: 0;
+            padding-top: 0px;
             background-color: #FAF8EF;
             border: none;
             position: relative;
+        }
+
+        #socials {
+            padding-bottom: 0px;
+            margin-bottom: 5px;
         }
 
         /* Bottom line */
@@ -167,12 +200,14 @@
 
         .socials {
             display: flex;
-            justify-content: left;
-            gap: 10px;
-            margin-top: 10px;
-            padding-bottom: -10px;
-            margin-bottom: 10px;
+            justify-content: center; 
+            gap: 0px;
+            padding-top: -10px;
+            padding-bottom: 0px;
+            margin-top: -10px;
+            margin-bottom: 0;
         }
+
 
         .socials a {
             color: #333333;
@@ -193,6 +228,82 @@
             display: block;
             margin: 0 auto;
         }
+    /* Base link styling */
+    a {
+        color: #333333;  /* Dark gray, matching your header */
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;  /* Smooth transitions for all states */
+    }
+
+    /* Different states using LVHA order (Link, Visited, Hover, Active) */
+    a:link {
+        color: #4A90E2;
+    }
+
+    a:visited {
+        color: #357ABD;
+    }
+
+    a:hover, a:focus {
+        color: #357ABD;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    a:active {
+        color: #000000;
+    }
+
+    /* Special styling for nav links (in your header) */
+    nav a {
+        color: #FAF8EF;  /* Keep your existing light color */
+        padding: 10px;
+        font-weight: bold;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    nav a:hover, nav a:focus {
+        background-color: #555555;
+        text-decoration: none;  /* Override the default hover underline */
+    }
+
+    /* Special styling for footer links */
+    /* Footer-specific styles with higher specificity */
+    body footer a,
+    body footer a:link,
+    body footer a:visited {
+        color: #FAF8EF;
+        text-decoration: none;
+    }
+
+    body footer a:hover,
+    body footer a:focus {
+        color: #FAF8EF;
+        opacity: 0.8;
+        text-decoration: none;
+    }
+
+    /* Signature-specific style */
+    body footer .signature a,
+    body footer .signature a:visited,
+    body footer .signature a:hover {
+        color: #AAA8AA;
+        font-size: 0.8em;
+        text-decoration: none;
+    }
+
+    /* Socials styling */
+    .socials a {
+        color: #333333;
+        font-weight: bold;
+        padding: 5px 10px;
+        transition: color 0.2s ease-in-out;
+    }
+
+    .socials a:hover {
+        color: #555555;
+        text-decoration: none;
+    }
     </style>
 </head>
 <body>
@@ -215,19 +326,15 @@
         </div>
     </section>
 
-    <section id="blog">
-        <h2>Blogs</h2>
-        <ul>
-            <li><a href="https://bolton.substack.com" target="_blank"><strong>Candid Selfie</strong></a>: A semi-periodic snapshot of where my head is at. New posts every Sunday.</li>
-            <li><a href="https://alignedforesight.substack.com/about" target="_blank"><strong>Aligned Foresight</strong></a>: Data-driven reporting on superforecasting, AI, politics, and society, focused on measuring today's public opinion and predicting tomorrow's.</li>
-        </ul>
-    </section>
-
     <section id="projects">
         <h2>Projects</h2>
            <ul>
-               <li><a href="https://frontier-beat.github.io/" target="_blank"><strong>Frontier Beat</strong></a>: An AI-powered platform that tracks and summarizes trending research papers from ArXiv and their associated GitHub repositories.</li>
-               <li><a href="https://show-me-the-ballot.glitch.me/" target="_blank"><strong>Show me the Ballot!</strong></a>: A web app that helps first-time voters preview their ballot information, making voting information more accessible and less intimidating.</li>
+<li><a href="https://frontier-beat.github.io/" target="_blank"><strong>Frontier Beat</strong></a>: An AI-powered platform that tracks and summarizes trending research papers from ArXiv and their associated GitHub repositories.</li>
+<li><a href="https://show-me-the-ballot.glitch.me/" target="_blank"><strong>Show me the Ballot!</strong></a>: A web app that helps first-time voters preview their ballot information, making voting information more accessible and less intimidating.</li>
+<li><a href="https://docs.google.com/presentation/d/1b5ZTp-nax6ckfZ8VWKw5-McUovpNEomVGpUcEhB59nY" target="_blank"><strong>Machine Thoughts</strong></a>: An early demonstration of how language models can generate convincing human conversation, foreshadowing current concerns about AI-driven disinformation and presented at <a href="https://cj2021.northeastern.edu/" target="_blank">C+J 2021</a>.</li>
+<li><a href="https://medium.com/@eric.didier.bolton/last-minute-moneyball-maximize-your-impact-before-election-day-91e4da132174" target="_blank"><strong>Last Minute Moneyball</strong></a>: Analysis of voting power distribution in the US, using polling data to calculate dollar value (in federal funding impact) of votes across different jurisdictions.</li>
+<li><a href="https://observablehq.com/embed/@edbltn/brexit-coverage-map" target="_blank"><strong>Brexit Coverage Map</strong></a>: Interactive visualization using Doc2Vec embeddings to compare Brexit coverage across British newspapers, revealing partisan lean. <a href="https://drive.google.com/file/d/1a3etwOZ7SsJ4Zykd5RDnjkZELUpUYqwu/view" target="_blank">Link to write-up.</a></li>
+<li><a href="https://adblogicam.blogspot.com/2017/01/beating-dots.html" target="_blank"><strong>Beating Dots</strong></a>: A*-algorithm agent that achieved a perfect score in Dots in under 100 tries, the only known perfect score achieved in the game, per the leaderboard.</li>
            </ul>
     </section>
 
@@ -235,24 +342,29 @@
 
         <h2>Articles & Publications</h2>
         <ul>
-            <li><a href="https://arxiv.org/abs/2012.00209" target="_blank">High Quality Real-Time Structured Debate Generation</a></li>
-            <li><a href="https://www.wsj.com/articles/talk2020-retrieves-and-analyzes-30-years-of-candidate-statements-11575393228" target="_blank">Talk2020 Retrieves and Analyzes 30 Years of Candidate Statements</a></li>
-            <li><a href="https://www.wsj.com/graphics/a-decade-of-news/" target="_blank">A Decade of News: Analyzing Semantic Drift with Word2Vec</a></li>
-            <li><a href="https://www.wsj.com/articles/whats-in-a-hedcut-depends-how-its-made-11576537243" target="_blank">What's in a Hedcut? The AI Portraits Project for WSJ</a></li>
+<li><a href="https://arxiv.org/abs/2012.00209" target="_blank"><strong>High Quality Real-Time Structured Debate Generation</strong></a>: AI debate generation using tree-structured data from Kialo, reaching near-human performance through a novel augmentation strategy: concatenating "Pro" argument chains in the debate tree.</li>
+<li><a href="https://www.wsj.com/articles/talk2020-retrieves-and-analyzes-30-years-of-candidate-statements-11575393228" target="_blank"><strong>Talk2020 Retrieves and Analyzes 30 Years of Candidate Statements</strong></a>: Database and search tool built for the Wall Street Journal, enabling analyses that revealed unique linguistic patterns and topic preferences among presidential candidates.</li>
+<li><a href="https://www.wsj.com/graphics/a-decade-of-news/" target="_blank"><strong>A Decade of News: How the Big Stories Evolved</strong></a>: Analysis using Word2Vec to track the evolution of public figures' media portrayal over time, including dramatic shifts in perception of key political figures.</li>
+<li><a href="https://www.wsj.com/articles/whats-in-a-hedcut-depends-how-its-made-11576537243" target="_blank"><strong>What's in a Hedcut? Depends How It's Made</strong></a>: Innovative AI system for generating the Wall Street Journal's iconic stipple portraits, with special focus on improving representation through AI-augmented training data.</li>
+        </ul>
+    </section>
+
+    <section id="blog">
+        <h2>Blogs</h2>
+        <ul>
+            <li><a href="https://bolton.substack.com" target="_blank"><strong>Candid Selfie</strong></a>: A semi-periodic snapshot of where my head is at. New posts every Sunday.</li>
+            <li><a href="https://alignedforesight.substack.com/about" target="_blank"><strong>Aligned Foresight</strong></a>: Data-driven reporting on superforecasting, AI, politics, and society, focused on measuring public opinion and predicting how it will evolve.</li>
         </ul>
     </section>
 
     <section id="socials">
         <h2>Socials</h2>
         <div class="socials">
-            <a href="https://twitter.com/edbltn" target="_blank">Twitter</a>
-            <a>|</a>
-            <a href="https://github.com/edbltn" target="_blank">GitHub</a>
+            <p> <a href="https://twitter.com/edbltn" target="_blank">Twitter</a>|<a href="https://github.com/edbltn" target="_blank">GitHub</a> </p>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2024 Eric Bolton. All rights reserved.</p>
         <p class="signature"><a
               href="https://buymeacoffee.com/ericbolton"
               target="_blank"
