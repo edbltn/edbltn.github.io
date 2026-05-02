@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>By-Right Blackwell — A Manifesto for the Accessory Data Center Unit</title>
+    <meta name="description" content="A manifesto for the Accessory Data Center Unit by Eric Bolton.">
+    <meta property="og:title" content="By-Right Blackwell — A Manifesto for the Accessory Data Center Unit">
+    <meta property="og:description" content="A manifesto for the Accessory Data Center Unit by Eric Bolton.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.ericdidierbolton.com/by-right-blackwell.html">
+    <style>
+        @font-face {
+            font-family: 'Libre Caslon Text';
+            src: url('./assets/LibreCaslonText-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Public Sans';
+            src: url('./assets/PublicSans-VariableFont_wght.ttf') format('truetype');
+        }
+
+        body {
+            background-color: #FAF8EF;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Public Sans', serif;
+            font-weight: 400;
+        }
+
+        p, li, input, button, footer, header, div, em, strong {
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 200;
+        }
+
+        em { font-style: italic; }
+        strong { font-weight: 400; }
+
+        header {
+            background-color: #333333;
+            color: #FAF8EF;
+            padding: 10px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0.3em 0 0.1em;
+            font-size: 1.8em;
+        }
+
+        header p {
+            margin: 0.2em 0 0.6em;
+        }
+
+        section {
+            padding: 20px 40px;
+            margin: 10px 0 0;
+            background-color: #FAF8EF;
+            border: none;
+            position: relative;
+        }
+
+        section::after {
+            content: '';
+            position: absolute;
+            width: calc(100% - 20px);
+            height: 1px;
+            background: rgb(175, 174, 163);
+            left: 10px;
+            bottom: -5px;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            bottom: 10px;
+            width: 1px;
+            background: rgb(175, 174, 163);
+        }
+
+        section > :first-child::before {
+            content: '';
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            bottom: 10px;
+            width: 1px;
+            background: rgb(175, 174, 163);
+        }
+
+        .meta {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 1em;
+        }
+
+        .actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 0.5em 0 1.2em;
+        }
+
+        .actions a {
+            display: inline-block;
+            padding: 8px 14px;
+            border: 1px solid #333333;
+            color: #333333;
+            text-decoration: none;
+            font-weight: 400;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .actions a:hover {
+            background-color: #333333;
+            color: #FAF8EF;
+            text-decoration: none;
+        }
+
+        .pdf-frame {
+            width: 100%;
+            height: 90vh;
+            border: 1px solid rgb(175, 174, 163);
+            background: #fff;
+        }
+
+        .fallback {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 0.8em;
+        }
+
+        footer {
+            padding: 0.1px;
+            background-color: #333333;
+            color: #FAF8EF;
+            text-align: center;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        a {
+            color: #4A90E2;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+        }
+        a:visited { color: #357ABD; }
+        a:hover, a:focus {
+            color: #357ABD;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        body footer a,
+        body footer a:link,
+        body footer a:visited {
+            color: #FAF8EF;
+            text-decoration: none;
+        }
+        body footer a:hover, body footer a:focus {
+            color: #FAF8EF;
+            opacity: 0.8;
+            text-decoration: none;
+        }
+
+        .signature a,
+        body footer .signature a,
+        body footer .signature a:visited,
+        body footer .signature a:hover {
+            color: #AAA8AA;
+            font-size: 0.8em;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>By-Right Blackwell</h1>
+        <p>A Manifesto for the Accessory Data Center Unit</p>
+    </header>
+
+    <section>
+        <p class="meta">By <a href="/">Eric Bolton</a></p>
+
+        <div class="actions">
+            <a href="./By-Right-Blackwell.pdf" download>Download PDF</a>
+            <a href="./By-Right-Blackwell.pdf" target="_blank" rel="noopener">Open in new tab</a>
+            <a href="/">&larr; Back to home</a>
+        </div>
+
+        <object class="pdf-frame" data="./By-Right-Blackwell.pdf#view=FitH" type="application/pdf">
+            <iframe class="pdf-frame" src="./By-Right-Blackwell.pdf#view=FitH" title="By-Right Blackwell PDF"></iframe>
+            <p class="fallback">
+                Your browser can't display the embedded PDF.
+                <a href="./By-Right-Blackwell.pdf">Download it here.</a>
+            </p>
+        </object>
+    </section>
+
+    <footer>
+        <p class="signature"><a
+              href="https://buymeacoffee.com/ericbolton"
+              target="_blank"
+              rel="noopener noreferrer">&#9749;&#65039; Buy me a brew?</a>
+        </p>
+    </footer>
+</div>
+
+</body>
+</html>
