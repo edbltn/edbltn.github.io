@@ -14,18 +14,108 @@
         html, body {
             margin: 0;
             padding: 0;
-            height: 100%;
             background: #525659;
+            min-height: 100%;
+            -webkit-text-size-adjust: 100%;
         }
-        embed, iframe {
-            display: block;
-            width: 100%;
-            height: 100vh;
-            border: 0;
+        #pdf {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 12px;
         }
+        #pdf canvas {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+            background: #fff;
+        }
+        .status {
+            color: #ddd;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            text-align: center;
+            padding: 40px 16px;
+        }
+        .status a { color: #fff; }
     </style>
 </head>
 <body>
-    <embed src="./By-Right-Blackwell.pdf#view=FitH" type="application/pdf">
+    <div id="pdf"><div class="status">Loading…</div></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        (function () {
+            var container = document.getElementById('pdf');
+            var url = './By-Right-Blackwell.pdf';
+
+            if (!window.pdfjsLib) {
+                container.innerHTML = '<div class="status">Could not load PDF viewer. <a href="' + url + '">Download PDF</a>.</div>';
+                return;
+            }
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            var pdfDoc = null;
+            var rendering = false;
+            var pendingWidth = null;
+
+            function targetCssWidth() {
+                return Math.min(document.documentElement.clientWidth - 24, 900);
+            }
+
+            async function renderAll(cssWidth) {
+                if (rendering) { pendingWidth = cssWidth; return; }
+                rendering = true;
+                try {
+                    container.innerHTML = '';
+                    var dpr = window.devicePixelRatio || 1;
+                    for (var i = 1; i <= pdfDoc.numPages; i++) {
+                        var page = await pdfDoc.getPage(i);
+                        var base = page.getViewport({ scale: 1 });
+                        var cssScale = cssWidth / base.width;
+                        var viewport = page.getViewport({ scale: cssScale * dpr });
+                        var canvas = document.createElement('canvas');
+                        canvas.width = Math.floor(viewport.width);
+                        canvas.height = Math.floor(viewport.height);
+                        canvas.style.width = Math.floor(base.width * cssScale) + 'px';
+                        canvas.style.height = Math.floor(base.height * cssScale) + 'px';
+                        container.appendChild(canvas);
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    container.innerHTML = '<div class="status">Failed to render PDF. <a href="' + url + '">Download PDF</a>.</div>';
+                } finally {
+                    rendering = false;
+                    if (pendingWidth !== null) {
+                        var w = pendingWidth; pendingWidth = null;
+                        renderAll(w);
+                    }
+                }
+            }
+
+            pdfjsLib.getDocument(url).promise.then(function (doc) {
+                pdfDoc = doc;
+                renderAll(targetCssWidth());
+            }).catch(function (e) {
+                console.error(e);
+                container.innerHTML = '<div class="status">Failed to load PDF. <a href="' + url + '">Download PDF</a>.</div>';
+            });
+
+            var resizeTimer;
+            var lastWidth = targetCssWidth();
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                    if (!pdfDoc) return;
+                    var w = targetCssWidth();
+                    if (Math.abs(w - lastWidth) < 24) return;
+                    lastWidth = w;
+                    renderAll(w);
+                }, 200);
+            });
+        })();
+    </script>
 </body>
 </html>
