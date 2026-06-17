@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BACKLOG — a procedurally generated productivity machine</title>
+<meta name="description" content="A procedurally generated productivity machine — check a box, summon more boxes. By Eric Bolton.">
+<meta property="og:title" content="THE BACKLOG — a procedurally generated productivity machine">
+<meta property="og:description" content="Check a box, summon more boxes. Every task is real. None of the tasks are real.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ericdidierbolton.com/the-backlog/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="../me.png">
+<style>
+  :root{
+    --bg:#0d0e12; --panel:#14161d; --ink:#e8e9ec; --dim:#6b7080;
+    --line:#23262f; --accent:#7cf0c0; --accent-d:#3aa884;
+    --warn:#f0c66b; --done:#4a5060; --branch:#9aa0ff; --leaf:#7cf0c0;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #1a1d28 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #18221e 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:var(--mono);
+    display:flex; flex-direction:column; align-items:center;
+    padding:28px 16px 80px; line-height:1.5; min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%; max-width:760px}
+
+  header{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:6px; flex-wrap:wrap}
+  h1{font-size:15px; letter-spacing:.32em; font-weight:600; color:var(--ink)}
+  h1 b{color:var(--accent)}
+  .sub{font-size:11px; color:var(--dim); letter-spacing:.12em; margin-bottom:22px}
+
+  .stats{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 13px; min-width:92px}
+  .stat .k{font-size:9.5px; letter-spacing:.18em; color:var(--dim); text-transform:uppercase}
+  .stat .v{font-size:21px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; line-height:1.25}
+  .stat.alt .v{color:var(--warn)}
+  .stat.alt2 .v{color:var(--branch)}
+
+  .project{
+    background:linear-gradient(180deg,#15171f,#111319);
+    border:1px solid var(--line); border-radius:14px; padding:20px 20px 22px;
+    box-shadow:0 18px 50px -28px #000;
+    position:relative; overflow:hidden;
+  }
+  .project::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent-d),transparent);
+    opacity:.55;
+  }
+  .ptitle{font-size:10px; letter-spacing:.22em; color:var(--dim); text-transform:uppercase; margin-bottom:3px}
+  .pname{font-size:18px; font-weight:600; letter-spacing:.01em; margin-bottom:4px; color:#fff}
+  .pmeta{font-size:11px; color:var(--dim); margin-bottom:16px}
+  .pbarwrap{height:4px; background:#000; border-radius:3px; overflow:hidden; margin:10px 0 18px}
+  .pbar{height:100%; width:0; background:linear-gradient(90deg,var(--accent-d),var(--accent)); transition:width .45s cubic-bezier(.2,.8,.2,1)}
+
+  ul.tree{list-style:none}
+  ul.tree ul{list-style:none; margin-left:22px; border-left:1px dashed #2a2e3a; padding-left:4px}
+
+  li.node{position:relative}
+  .row{
+    display:flex; align-items:flex-start; gap:10px; padding:5px 8px; border-radius:8px;
+    cursor:pointer; transition:background .15s; user-select:none;
+  }
+  .row:hover{background:#1b1e27}
+  .row.locked{cursor:default; opacity:.55}
+  .row.locked:hover{background:transparent}
+
+  .box{
+    flex:0 0 auto; width:18px; height:18px; margin-top:2px; border-radius:5px;
+    border:1.5px solid #3a3f4d; background:#0c0d11; position:relative;
+    transition:border-color .15s, background .15s; display:grid; place-items:center;
+  }
+  .row:hover .box{border-color:var(--accent-d)}
+  .box svg{width:12px; height:12px; opacity:0; transform:scale(.5); transition:.18s}
+  .node.done > .row .box{background:var(--accent); border-color:var(--accent)}
+  .node.done > .row .box svg{opacity:1; transform:scale(1)}
+  .node.done > .row .box svg path{stroke:#0c0d11}
+
+  .txt{font-size:14px; color:var(--ink); transition:color .2s}
+  .node.done > .row .txt{color:var(--done); text-decoration:line-through; text-decoration-color:#3a3f4d}
+  .tag{font-size:9px; letter-spacing:.12em; padding:1px 6px; border-radius:20px; margin-left:8px; vertical-align:middle; border:1px solid; text-transform:uppercase}
+  .tag.branch{color:var(--branch); border-color:#3a3f6a}
+  .tag.leaf{color:var(--leaf); border-color:var(--accent-d)}
+  .prog{font-size:10px; color:var(--dim); margin-left:8px; font-variant-numeric:tabular-nums}
+
+  /* reveal animation for spawned children */
+  ul.spawn{overflow:hidden}
+  .node.appear{animation:slidein .34s cubic-bezier(.2,.85,.25,1) both}
+  @keyframes slidein{from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:translateY(0)}}
+
+  .empty{color:var(--dim); font-size:12px; padding:10px 4px}
+
+  /* completion flash */
+  .project.complete{animation:flash .6s ease}
+  @keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}50%{box-shadow:0 0 40px -6px var(--accent)}100%{box-shadow:0 18px 50px -28px #000}}
+
+  .controls{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap}
+  button{
+    font-family:var(--mono); font-size:12px; letter-spacing:.08em;
+    background:#1b1e27; color:var(--ink); border:1px solid var(--line);
+    padding:9px 15px; border-radius:9px; cursor:pointer; transition:.15s;
+  }
+  button:hover{border-color:var(--accent-d); color:var(--accent)}
+  button.primary{background:var(--accent); color:#0c0d11; border-color:var(--accent); font-weight:600}
+  button.primary:hover{background:#9af7d2; color:#0c0d11}
+
+  .log{margin-top:20px; font-size:11px; color:var(--dim); max-height:120px; overflow-y:auto; border-top:1px solid var(--line); padding-top:12px}
+  .log div{padding:2px 0; opacity:.85}
+  .log .hi{color:var(--accent)}
+  .log .gold{color:var(--warn)}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--accent); color:#0c0d11; font-weight:600; font-size:13px; letter-spacing:.04em;
+    padding:12px 22px; border-radius:30px; box-shadow:0 12px 40px -10px var(--accent-d);
+    opacity:0; pointer-events:none; transition:.35s; z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  footer{margin-top:26px; font-size:10px; color:#3a3f4d; letter-spacing:.1em; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>THE&nbsp;<b>BACKLOG</b></h1>
+  </header>
+  <div class="sub">// a procedurally generated productivity machine — check a box, summon more boxes</div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Projects Shipped</div><div class="v" id="s-proj">0</div></div>
+    <div class="stat alt"><div class="k">Tasks Closed</div><div class="v" id="s-task">0</div></div>
+    <div class="stat alt2"><div class="k">Boxes Spawned</div><div class="v" id="s-spawn">1</div></div>
+    <div class="stat"><div class="k">Productivity</div><div class="v" id="s-score">0</div></div>
+  </div>
+
+  <div class="project" id="project">
+    <div class="ptitle">Active Project</div>
+    <div class="pname" id="pname">—</div>
+    <div class="pmeta" id="pmeta"></div>
+    <div class="pbarwrap"><div class="pbar" id="pbar"></div></div>
+    <ul class="tree" id="tree"></ul>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="btn-new">⟳ Abandon &amp; Regenerate</button>
+    <button id="btn-auto">▸ Auto-grind</button>
+  </div>
+
+  <div class="log" id="log"></div>
+  <footer>EVERY TASK IS REAL. NONE OF THE TASKS ARE REAL.</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   1. VOCABULARY  — frequency-weighted word banks
+   higher weight = appears more often
+   ============================================================ */
+const VOCAB = {
+  verb: [
+    ["Refactor",9],["Migrate",8],["Audit",7],["Deprecate",6],["Consolidate",7],
+    ["Provision",5],["Sunset",4],["Onboard",6],["Streamline",8],["Escalate",5],
+    ["Validate",9],["Reconcile",6],["Benchmark",5],["Triage",7],["Archive",6],
+    ["Synchronize",4],["Decommission",3],["Harden",5],["Normalize",6],["Backfill",4],
+    ["Untangle",6],["Sanitize",5],["Throttle",3],["Rehydrate",2],["Quarantine",3],
+    ["Bless",2],["Vibe-check",2],["Resurrect",3],["Vaporize",2],["Yeet",1]
+  ],
+  adj: [
+    ["legacy",9],["downstream",7],["stale",8],["orphaned",6],["flaky",7],
+    ["mission-critical",5],["deprecated",6],["upstream",6],["ambient",4],["spurious",4],
+    ["recursive",5],["headless",4],["bespoke",5],["ephemeral",4],["canonical",6],
+    ["haunted",3],["load-bearing",4],["undocumented",7],["nondeterministic",3],
+    ["quarterly",6],["cursed",2],["vestigial",3],["asymptotic",2],["artisanal",2]
+  ],
+  noun: [
+    ["pipeline",9],["dashboard",8],["config",9],["dependency",8],["queue",6],
+    ["migration",6],["webhook",5],["cache",7],["schema",7],["backlog",6],
+    ["monolith",4],["microservice",5],["ticket",8],["cron job",4],["manifest",4],
+    ["feature flag",5],["payload",5],["endpoint",6],["rollback",4],["changelog",5],
+    ["roadmap",6],["spreadsheet",7],["staging environment",4],["incident",6],
+    ["retro",5],["standup",6],["kanban board",4],["mutex",2],["heisenbug",2],["gremlin",2]
+  ],
+  place: [
+    ["in production",7],["before standup",6],["across the org",5],["in the cloud",6],
+    ["under the deadline",6],["by EOD",8],["in the staging tier",4],["for compliance",5],
+    ["per the roadmap",5],["without telling anyone",4],["one last time",5],
+    ["for the third time",4],["pending review",5],["ahead of the audit",5],
+    ["in a feature branch",4],["over the weekend",3],["against your better judgment",3],
+    ["for the stakeholders",5],["before it spreads",4]
+  ],
+  // templates reference the banks above; {x} pulls a weighted word
+  template: [
+    ["{verb} the {adj} {noun}",10],
+    ["{verb} every {noun} {place}",8],
+    ["{verb} the {noun} {place}",9],
+    ["{verb} the {adj} {noun} {place}",10],
+    ["{verb} the {noun} before the {adj} {noun} does",5],
+    ["{verb} all {adj} {noun}s {place}",6],
+    ["{verb} the {noun} into the {adj} {noun}",6],
+    ["{verb} and re-{verbl} the {adj} {noun}",4],
+    ["Do not {verbl} the {noun} — instead, {verb} it {place}",3],
+    ["{verb} the {adj} {noun} until the {noun} stops complaining",4]
+  ]
+};
+
+const PROJECT_NAMES = [
+  ["Operation {adj} {noun}",6],["Project {Noun}fall",4],["The {Noun} Initiative",6],
+  ["{adj} {noun} Overhaul",6],["Q{n} {Noun} Cleanup",7],["The Great {Noun} Migration",4],
+  ["{Noun} Modernization Effort",5],["{adj} {Noun} Taskforce",4],["The {noun}-{noun} Sync",4],
+  ["{Noun} Debt Repayment",5],["Codename: {Noun}",3]
+];
+
+/* ---- weighted random helpers ---- */
+function wpick(bank){
+  let total=0; for(const [,w] of bank) total+=w;
+  let r=Math.random()*total;
+  for(const [v,w] of bank){ r-=w; if(r<=0) return v; }
+  return bank[0][0];
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+// crude de-verb for "re-{verbl}" / "do not {verbl}" => lowercase base
+function verbLower(){ return wpick(VOCAB.verb).toLowerCase(); }
+
+function fill(str){
+  return str
+    .replace(/\{verb\}/g, ()=>wpick(VOCAB.verb))
+    .replace(/\{verbl\}/g, ()=>verbLower())
+    .replace(/\{adj\}/g, ()=>wpick(VOCAB.adj))
+    .replace(/\{Noun\}/g, ()=>cap(wpick(VOCAB.noun)))
+    .replace(/\{noun\}/g, ()=>wpick(VOCAB.noun))
+    .replace(/\{place\}/g, ()=>wpick(VOCAB.place))
+    .replace(/\{n\}/g, ()=>1+Math.floor(Math.random()*4));
+}
+function genSentence(){ return cap(fill(wpick(VOCAB.template))); }
+function genProjectName(){ return fill(wpick(PROJECT_NAMES)); }
+
+/* ============================================================
+   2. PROJECT TREE  — checkbox spawning logic
+   Each node, when checked, procedurally resolves to either:
+     • a BRANCH  -> spawns 2-4 tabbed child checkboxes
+     • a LEAF    -> closes immediately (contributes to "project complete")
+   Branch probability decays with depth so projects terminate.
+   ============================================================ */
+let state = { proj:0, task:0, spawn:1, score:0 };
+let nextId = 1;
+let root = null;
+let autoTimer = null;
+
+const MAX_DEPTH = 4;
+
+function branchChance(depth){
+  // depth 0: ~80%, falls off; depth>=MAX_DEPTH: 0
+  if(depth >= MAX_DEPTH) return 0;
+  return 0.82 - depth*0.22;
+}
+
+function makeNode(depth){
+  return {
+    id: nextId++,
+    text: genSentence(),
+    depth,
+    done: false,
+    resolved: false,   // has its fate (branch/leaf) been decided?
+    children: null,    // array once resolved as branch
+  };
+}
+
+function newProject(){
+  nextId = 1;
+  root = {
+    id: 0, depth:-1, done:false, resolved:true, isRoot:true,
+    children: Array.from({length: 2+Math.floor(Math.random()*3)}, ()=>makeNode(0))
+  };
+  state.spawn = countNodes(root);
+  document.getElementById('pname').textContent = genProjectName();
+  document.getElementById('pmeta').textContent =
+    `Priority P${Math.floor(Math.random()*3)} · ${root.children.length} open threads · est. ∞ story points`;
+  render();
+  syncStats();
+}
+
+function countNodes(n){
+  let c = n.isRoot ? 0 : 1;
+  if(n.children) for(const ch of n.children) c += countNodes(ch);
+  return c;
+}
+
+/* a node is "fully complete" when:
+   - leaf & done, OR
+   - branch & all children fully complete */
+function isComplete(n){
+  if(n.children) return n.children.every(isComplete);
+  return n.done;
+}
+function leafCounts(n){ // {done, total} over leaves
+  if(n.isRoot){ let d=0,t=0; for(const c of n.children){const r=leafCounts(c); d+=r.done; t+=r.total;} return {done:d,total:t}; }
+  if(n.children){ let d=0,t=0; for(const c of n.children){const r=leafCounts(c); d+=r.done; t+=r.total;} return {done:d,total:t}; }
+  return {done: n.done?1:0, total:1};
+}
+
+/* when a user checks an unresolved node -> decide its fate */
+function resolveNode(n){
+  n.resolved = true;
+  if(Math.random() < branchChance(n.depth)){
+    const k = 2 + Math.floor(Math.random()* (n.depth<2?3:2));
+    n.children = Array.from({length:k}, ()=>makeNode(n.depth+1));
+    state.spawn += k;
+    return 'branch';
+  } else {
+    n.done = true;
+    n.children = null;
+    state.task++;
+    state.score += 10 + n.depth*5;
+    return 'leaf';
+  }
+}
+
+/* ============================================================
+   3. RENDER
+   ============================================================ */
+const treeEl = document.getElementById('tree');
+
+function nodeTag(n){
+  if(!n.resolved) return '';
+  if(n.children) {
+    const {done,total}=leafCounts(n);
+    return `<span class="tag branch">subtasks</span><span class="prog">${done}/${total}</span>`;
+  }
+  return `<span class="tag leaf">closed</span>`;
+}
+
+function render(){
+  treeEl.innerHTML='';
+  for(const child of root.children) treeEl.appendChild(renderNode(child));
+  updateBar();
+}
+
+function renderNode(n, animate=false){
+  const li=document.createElement('li');
+  li.className='node'+(isComplete(n)?' done':'')+(animate?' appear':'');
+  li.dataset.id=n.id;
+
+  const row=document.createElement('div');
+  const locked = n.children && !isComplete(n); // branch w/ pending kids: clicking does nothing
+  row.className='row'+(locked?' locked':'');
+  row.innerHTML =
+    `<span class="box"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#0c0d11" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`+
+    `<span class="txt">${n.text}${nodeTag(n)}</span>`;
+  row.addEventListener('click', ()=>onClick(n));
+  li.appendChild(row);
+
+  if(n.children){
+    const ul=document.createElement('ul');
+    ul.className='spawn';
+    for(const c of n.children) ul.appendChild(renderNode(c));
+    li.appendChild(ul);
+  }
+  return li;
+}
+
+/* re-render just one subtree in place (keeps siblings stable) */
+function rerenderNode(n, animateChildren=false){
+  const li = treeEl.querySelector(`li.node[data-id="${n.id}"]`);
+  if(!li) { render(); return; }
+  const fresh = renderNode(n);
+  if(animateChildren){
+    const ul = fresh.querySelector('ul');
+    if(ul) for(const child of ul.children) child.classList.add('appear');
+  }
+  li.replaceWith(fresh);
+}
+
+/* ============================================================
+   4. INTERACTION
+   ============================================================ */
+function onClick(n){
+  if(n.children){
+    // branch node — not directly toggleable; ignore unless we want uncheck of leaves
+    return;
+  }
+  if(n.done) return; // already a closed leaf, no-op
+
+  const fate = resolveNode(n);
+  if(fate==='branch'){
+    log(`<span class="hi">▸ spawned</span> ${n.children.length} subtasks under "<em>${trim(n.text)}</em>"`);
+    rerenderNode(n, true);
+  } else {
+    log(`<span class="hi">✓ closed</span> "${trim(n.text)}"`);
+    rerenderNode(n);
+  }
+  // bubble: parent might now be complete -> refresh ancestors' tags/strike
+  refreshAncestors(n);
+  updateBar();
+  syncStats();
+  checkProjectComplete();
+}
+
+function findParent(target, node=root){
+  if(!node.children) return null;
+  if(node.children.includes(target)) return node;
+  for(const c of node.children){ const p=findParent(target,c); if(p) return p; }
+  return null;
+}
+function refreshAncestors(n){
+  let p=findParent(n);
+  while(p && !p.isRoot){
+    rerenderNode(p); // updates progress tag + done styling without nuking subtree state
+    p=findParent(p);
+  }
+  // root-level children already refreshed via their own rerender; ensure top tags update
+  if(p && p.isRoot){
+    for(const c of root.children){ if(c!==n) { /* leave */ } }
+  }
+}
+
+function trim(s){ return s.length>46 ? s.slice(0,44)+'…' : s; }
+
+function updateBar(){
+  const {done,total}=leafCounts(root);
+  const pct = total? Math.round(100*done/total):0;
+  document.getElementById('pbar').style.width=pct+'%';
+  document.getElementById('pmeta').dataset.pct=pct;
+}
+
+function checkProjectComplete(){
+  if(root.children.length && root.children.every(isComplete)){
+    state.proj++;
+    state.score += 100 + state.spawn*3;
+    syncStats();
+    const pj=document.getElementById('project');
+    pj.classList.add('complete');
+    setTimeout(()=>pj.classList.remove('complete'),650);
+    toast('★ PROJECT SHIPPED ★');
+    log(`<span class="gold">★ PROJECT SHIPPED</span> — ${state.spawn} boxes, all closed. +${100+state.spawn*3} prod.`);
+    if(autoTimer){ /* keep grinding */ }
+    setTimeout(newProject, autoTimer?500:900);
+  }
+}
+
+function syncStats(){
+  document.getElementById('s-proj').textContent=state.proj;
+  document.getElementById('s-task').textContent=state.task;
+  document.getElementById('s-spawn').textContent=state.spawn;
+  document.getElementById('s-score').textContent=state.score.toLocaleString();
+}
+
+/* ============================================================
+   5. LOG + TOAST + AUTO
+   ============================================================ */
+const logEl=document.getElementById('log');
+function log(html){
+  const d=document.createElement('div'); d.innerHTML=html;
+  logEl.prepend(d);
+  while(logEl.children.length>40) logEl.lastChild.remove();
+}
+let toastT=null;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* auto-grind: repeatedly click the first open leaf */
+function firstOpenLeaf(n=root){
+  if(!n.isRoot && !n.children && !n.done) return n;
+  if(n.children) for(const c of n.children){ const f=firstOpenLeaf(c); if(f) return f; }
+  return null;
+}
+document.getElementById('btn-auto').addEventListener('click', (e)=>{
+  if(autoTimer){
+    clearInterval(autoTimer); autoTimer=null; e.target.textContent='▸ Auto-grind';
+  } else {
+    e.target.textContent='■ Stop grinding';
+    autoTimer=setInterval(()=>{
+      const leaf=firstOpenLeaf();
+      if(leaf) onClick(leaf);
+    }, 240);
+  }
+});
+document.getElementById('btn-new').addEventListener('click', ()=>{
+  log('<span class="hi">⟳ regenerated</span> — previous backlog abandoned. No one will notice.');
+  newProject();
+});
+
+/* boot */
+newProject();
+log('Welcome to <span class="hi">THE BACKLOG</span>. Click any task. Each one may breed.');
+</script>
+</body>
+</html>
