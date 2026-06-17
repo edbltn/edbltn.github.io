@@ -3,222 +3,297 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THE BACKLOG — a procedurally generated productivity machine</title>
-<meta name="description" content="A procedurally generated productivity machine — check a box, summon more boxes. By Eric Bolton.">
-<meta property="og:title" content="THE BACKLOG — a procedurally generated productivity machine">
-<meta property="og:description" content="Check a box, summon more boxes. Every task is real. None of the tasks are real.">
+<title>THE BACKLOG — Form 27-B · Compliance &amp; Controls Requisition System</title>
+<meta name="description" content="A procedurally generated compliance requisition system. Discharge a clause, raise three more. By Eric Bolton.">
+<meta property="og:title" content="THE BACKLOG — Compliance &amp; Controls Requisition System (Form 27-B)">
+<meta property="og:description" content="Discharge a clause, raise three more. This artifact is retained for the records-retention period.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.ericdidierbolton.com/the-backlog/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" href="../me.png">
 <style>
   :root{
-    --bg:#0d0e12; --panel:#14161d; --ink:#e8e9ec; --dim:#6b7080;
-    --line:#23262f; --accent:#7cf0c0; --accent-d:#3aa884;
-    --warn:#f0c66b; --done:#4a5060; --branch:#9aa0ff; --leaf:#7cf0c0;
+    --ink:#1d2433; --ink-soft:#454f63; --faint:#8b8268;
+    --paper:#f3ecd9; --paper2:#ece2c9; --paper3:#e3d8ba;
+    --rule:#c9bd9a; --rule-d:#b3a578;
+    --stamp:#9c2a2a; --stamp-l:#bb4040;
+    --approve:#2f6b4f; --amber:#8a6314;
+    --banner:#16181d;
+    --serif:Georgia,"Times New Roman",Times,serif;
     --mono:"SF Mono",ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,monospace;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box; margin:0; padding:0}
   html,body{height:100%}
   body{
-    background:
-      radial-gradient(1200px 600px at 80% -10%, #1a1d28 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, #18221e 0%, transparent 55%),
-      var(--bg);
+    background:#2b2c28;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 7px, rgba(0,0,0,.07) 7px 8px),
+      radial-gradient(900px 500px at 50% -5%, #34352f 0%, #24251f 70%);
     color:var(--ink); font-family:var(--mono);
     display:flex; flex-direction:column; align-items:center;
-    padding:28px 16px 80px; line-height:1.5; min-height:100%;
+    padding:0 14px 70px; line-height:1.5; min-height:100%;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{width:100%; max-width:760px}
 
-  header{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:6px; flex-wrap:wrap}
-  h1{font-size:15px; letter-spacing:.32em; font-weight:600; color:var(--ink)}
-  h1 b{color:var(--accent)}
-  .sub{font-size:11px; color:var(--dim); letter-spacing:.12em; margin-bottom:22px}
-
-  .stats{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px}
-  .stat{background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 13px; min-width:92px}
-  .stat .k{font-size:9.5px; letter-spacing:.18em; color:var(--dim); text-transform:uppercase}
-  .stat .v{font-size:21px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; line-height:1.25}
-  .stat.alt .v{color:var(--warn)}
-  .stat.alt2 .v{color:var(--branch)}
-
-  .project{
-    background:linear-gradient(180deg,#15171f,#111319);
-    border:1px solid var(--line); border-radius:14px; padding:20px 20px 22px;
-    box-shadow:0 18px 50px -28px #000;
-    position:relative; overflow:hidden;
+  /* classification banner */
+  .classbar{
+    width:100%; max-width:800px; background:var(--banner); color:#e9e4d2;
+    font-size:10px; letter-spacing:.34em; text-align:center; padding:7px 10px;
+    text-transform:uppercase; font-weight:600;
+    border-left:6px solid; border-right:6px solid;
+    border-image: repeating-linear-gradient(45deg,#caa83a 0 9px,#16181d 9px 18px) 6;
   }
-  .project::before{
-    content:""; position:absolute; inset:0 0 auto 0; height:2px;
-    background:linear-gradient(90deg,transparent,var(--accent-d),transparent);
-    opacity:.55;
-  }
-  .ptitle{font-size:10px; letter-spacing:.22em; color:var(--dim); text-transform:uppercase; margin-bottom:3px}
-  .pname{font-size:18px; font-weight:600; letter-spacing:.01em; margin-bottom:4px; color:#fff}
-  .pmeta{font-size:11px; color:var(--dim); margin-bottom:16px}
-  .pbarwrap{height:4px; background:#000; border-radius:3px; overflow:hidden; margin:10px 0 18px}
-  .pbar{height:100%; width:0; background:linear-gradient(90deg,var(--accent-d),var(--accent)); transition:width .45s cubic-bezier(.2,.8,.2,1)}
+  .classbar.bottom{margin-top:22px}
 
+  .sheet{
+    width:100%; max-width:800px; background:var(--paper);
+    background-image:
+      linear-gradient(0deg, rgba(0,0,0,.015) 1px, transparent 1px);
+    background-size:100% 26px;
+    border:1px solid #5d5640; box-shadow:0 22px 60px -26px #000, inset 0 0 0 1px #fff8;
+    padding:26px 30px 30px; position:relative;
+  }
+  .sheet::after{ /* official double inner rule */
+    content:""; position:absolute; inset:8px; border:1.5px double var(--rule-d);
+    pointer-events:none;
+  }
+
+  /* form header */
+  .formhead{display:flex; justify-content:space-between; align-items:flex-start; gap:18px; border-bottom:2px solid var(--ink); padding-bottom:12px; margin-bottom:4px}
+  .formhead .left .agency{font-family:var(--serif); font-size:12px; letter-spacing:.05em; color:var(--ink-soft)}
+  .formhead .left h1{font-family:var(--serif); font-size:26px; font-weight:700; letter-spacing:.01em; line-height:1.05; margin-top:2px}
+  .formhead .left .tag{font-size:10px; letter-spacing:.18em; color:var(--faint); text-transform:uppercase; margin-top:4px}
+  .formno{text-align:right; font-size:10px; letter-spacing:.1em; color:var(--ink-soft); line-height:1.7; white-space:nowrap}
+  .formno b{color:var(--ink); font-size:11px}
+
+  /* seal */
+  .seal{
+    width:78px; height:78px; border-radius:50%; border:2.5px solid var(--stamp);
+    color:var(--stamp); display:grid; place-items:center; text-align:center;
+    font-size:7.5px; letter-spacing:.12em; line-height:1.25; font-weight:700; text-transform:uppercase;
+    transform:rotate(-8deg); opacity:.82; position:relative; flex:0 0 auto;
+    box-shadow:inset 0 0 0 4px var(--paper), inset 0 0 0 5.5px var(--stamp);
+  }
+  .seal span{display:block}
+  .seal .yr{font-size:11px; letter-spacing:.02em}
+
+  /* docket meta row */
+  .docket{display:flex; flex-wrap:wrap; gap:14px 26px; font-size:11px; color:var(--ink-soft); margin:14px 0 6px; padding:10px 0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule)}
+  .docket .f{display:flex; flex-direction:column}
+  .docket .f .k{font-size:8.5px; letter-spacing:.16em; color:var(--faint); text-transform:uppercase}
+  .docket .f .v{font-size:13px; color:var(--ink); font-weight:600}
+
+  /* conformance meter */
+  .meterwrap{margin:16px 0 6px}
+  .meterwrap .lab{display:flex; justify-content:space-between; font-size:9.5px; letter-spacing:.16em; color:var(--faint); text-transform:uppercase; margin-bottom:5px}
+  .meter{height:14px; border:1.5px solid var(--ink); background:var(--paper3); position:relative; overflow:hidden}
+  .meter::before{content:""; position:absolute; inset:0; background-image:repeating-linear-gradient(90deg,transparent 0 23px, rgba(0,0,0,.12) 23px 24px)}
+  .meterfill{height:100%; width:0; background:repeating-linear-gradient(45deg,var(--approve) 0 7px,#3a7d5e 7px 14px); transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+  /* the requisition list */
+  .listcap{font-family:var(--serif); font-size:12px; letter-spacing:.04em; color:var(--ink-soft); margin:18px 0 6px; font-style:italic}
   ul.tree{list-style:none}
-  ul.tree ul{list-style:none; margin-left:22px; border-left:1px dashed #2a2e3a; padding-left:4px}
+  ul.tree ul{list-style:none; margin-left:26px; border-left:1px dashed var(--rule-d); padding-left:6px}
 
   li.node{position:relative}
-  .row{
-    display:flex; align-items:flex-start; gap:10px; padding:5px 8px; border-radius:8px;
-    cursor:pointer; transition:background .15s; user-select:none;
-  }
-  .row:hover{background:#1b1e27}
-  .row.locked{cursor:default; opacity:.55}
+  .row{display:flex; align-items:flex-start; gap:10px; padding:5px 6px; cursor:pointer; transition:background .12s; user-select:none; border-bottom:1px dotted transparent}
+  .row:hover{background:rgba(157,42,42,.06)}
+  .row.locked{cursor:default}
   .row.locked:hover{background:transparent}
 
+  .ref{flex:0 0 auto; font-size:11px; color:var(--faint); min-width:54px; margin-top:2px; letter-spacing:.02em; font-variant-numeric:tabular-nums}
+
   .box{
-    flex:0 0 auto; width:18px; height:18px; margin-top:2px; border-radius:5px;
-    border:1.5px solid #3a3f4d; background:#0c0d11; position:relative;
-    transition:border-color .15s, background .15s; display:grid; place-items:center;
+    flex:0 0 auto; width:18px; height:18px; margin-top:2px; border:1.6px solid var(--ink);
+    background:var(--paper); display:grid; place-items:center; transition:.12s;
   }
-  .row:hover .box{border-color:var(--accent-d)}
-  .box svg{width:12px; height:12px; opacity:0; transform:scale(.5); transition:.18s}
-  .node.done > .row .box{background:var(--accent); border-color:var(--accent)}
-  .node.done > .row .box svg{opacity:1; transform:scale(1)}
-  .node.done > .row .box svg path{stroke:#0c0d11}
+  .row:hover .box{border-color:var(--stamp)}
+  .box svg{width:15px; height:15px; opacity:0; transform:scale(.4) rotate(-12deg); transition:.16s}
+  .node.done > .row .box svg{opacity:1; transform:scale(1) rotate(-7deg)}
+  .node.done > .row .box svg path{stroke:var(--stamp)}
 
-  .txt{font-size:14px; color:var(--ink); transition:color .2s}
-  .node.done > .row .txt{color:var(--done); text-decoration:line-through; text-decoration-color:#3a3f4d}
-  .tag{font-size:9px; letter-spacing:.12em; padding:1px 6px; border-radius:20px; margin-left:8px; vertical-align:middle; border:1px solid; text-transform:uppercase}
-  .tag.branch{color:var(--branch); border-color:#3a3f6a}
-  .tag.leaf{color:var(--leaf); border-color:var(--accent-d)}
-  .prog{font-size:10px; color:var(--dim); margin-left:8px; font-variant-numeric:tabular-nums}
+  .txt{font-size:14px; color:var(--ink)}
+  .node.done > .row .txt{color:var(--faint); text-decoration:line-through; text-decoration-color:var(--rule-d)}
+  .stat-tag{font-size:8.5px; letter-spacing:.13em; padding:1px 6px; margin-left:8px; vertical-align:middle; border:1px solid; text-transform:uppercase; white-space:nowrap}
+  .stat-tag.supp{color:var(--amber); border-color:var(--amber); background:rgba(138,99,20,.07)}
+  .stat-tag.disc{color:var(--approve); border-color:var(--approve); background:rgba(47,107,79,.07)}
+  .prog{font-size:10px; color:var(--faint); margin-left:8px; font-variant-numeric:tabular-nums}
 
-  /* reveal animation for spawned children */
-  ul.spawn{overflow:hidden}
-  .node.appear{animation:slidein .34s cubic-bezier(.2,.85,.25,1) both}
+  .node.appear{animation:slidein .32s cubic-bezier(.2,.85,.25,1) both}
   @keyframes slidein{from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:translateY(0)}}
 
-  .empty{color:var(--dim); font-size:12px; padding:10px 4px}
-
-  /* completion flash */
-  .project.complete{animation:flash .6s ease}
-  @keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}50%{box-shadow:0 0 40px -6px var(--accent)}100%{box-shadow:0 18px 50px -28px #000}}
-
-  .controls{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap}
-  button{
-    font-family:var(--mono); font-size:12px; letter-spacing:.08em;
-    background:#1b1e27; color:var(--ink); border:1px solid var(--line);
-    padding:9px 15px; border-radius:9px; cursor:pointer; transition:.15s;
+  /* approval stamp overlay */
+  .stamp{
+    position:absolute; top:34%; left:50%; transform:translate(-50%,-50%) rotate(-14deg) scale(1.6);
+    border:4px solid var(--stamp); color:var(--stamp); font-family:var(--serif); font-weight:700;
+    font-size:30px; letter-spacing:.06em; padding:6px 20px; text-transform:uppercase; opacity:0;
+    pointer-events:none; text-align:center; line-height:1.05; z-index:20; border-radius:4px;
+    box-shadow:inset 0 0 0 2px var(--stamp); text-shadow:0 0 1px var(--stamp);
   }
-  button:hover{border-color:var(--accent-d); color:var(--accent)}
-  button.primary{background:var(--accent); color:#0c0d11; border-color:var(--accent); font-weight:600}
-  button.primary:hover{background:#9af7d2; color:#0c0d11}
+  .stamp small{display:block; font-size:11px; letter-spacing:.16em; font-family:var(--mono); font-weight:600; margin-top:3px}
+  .stamp.fire{animation:stampin 1.5s cubic-bezier(.2,1.2,.3,1) forwards}
+  @keyframes stampin{
+    0%{opacity:0; transform:translate(-50%,-50%) rotate(-14deg) scale(2.4)}
+    14%{opacity:.95; transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
+    18%{transform:translate(-50%,-50%) rotate(-14deg) scale(1.06)}
+    24%{transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
+    80%{opacity:.95}
+    100%{opacity:0; transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
+  }
 
-  .log{margin-top:20px; font-size:11px; color:var(--dim); max-height:120px; overflow-y:auto; border-top:1px solid var(--line); padding-top:12px}
-  .log div{padding:2px 0; opacity:.85}
-  .log .hi{color:var(--accent)}
-  .log .gold{color:var(--warn)}
+  .controls{display:flex; gap:12px; margin-top:22px; flex-wrap:wrap}
+  button{
+    font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    background:var(--paper2); color:var(--ink); border:1.5px solid var(--ink);
+    padding:9px 16px; cursor:pointer; transition:.12s;
+  }
+  button:hover{background:var(--ink); color:var(--paper)}
+  button.primary{background:var(--stamp); color:var(--paper); border-color:var(--stamp)}
+  button.primary:hover{background:#7e1f1f}
+
+  /* audit trail */
+  .trailcap{font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-soft); margin:22px 0 6px; border-top:1px solid var(--rule); padding-top:14px}
+  .log{font-size:11px; color:var(--ink-soft); max-height:130px; overflow-y:auto; font-variant-numeric:tabular-nums}
+  .log div{padding:2px 0; display:flex; gap:8px}
+  .log .ts{color:var(--faint); flex:0 0 auto}
+  .log .hi{color:var(--stamp); font-weight:600}
+  .log .gold{color:var(--approve); font-weight:600}
+  .log em{font-style:normal; color:var(--ink)}
 
   .toast{
-    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--accent); color:#0c0d11; font-weight:600; font-size:13px; letter-spacing:.04em;
-    padding:12px 22px; border-radius:30px; box-shadow:0 12px 40px -10px var(--accent-d);
-    opacity:0; pointer-events:none; transition:.35s; z-index:50;
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    padding:12px 24px; border:1.5px solid var(--stamp); box-shadow:0 14px 40px -12px #000;
+    opacity:0; pointer-events:none; transition:.32s; z-index:50;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
-  footer{margin-top:26px; font-size:10px; color:#3a3f4d; letter-spacing:.1em; text-align:center}
+
+  .footnote{font-size:10px; color:#9a9176; letter-spacing:.06em; margin-top:16px; font-style:italic; text-align:center; max-width:800px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>THE&nbsp;<b>BACKLOG</b></h1>
-  </header>
-  <div class="sub">// a procedurally generated productivity machine — check a box, summon more boxes</div>
+<div class="classbar">For Official Use Only · Compliance &amp; Controls Division · Do Not Distribute</div>
 
-  <div class="stats">
-    <div class="stat"><div class="k">Projects Shipped</div><div class="v" id="s-proj">0</div></div>
-    <div class="stat alt"><div class="k">Tasks Closed</div><div class="v" id="s-task">0</div></div>
-    <div class="stat alt2"><div class="k">Boxes Spawned</div><div class="v" id="s-spawn">1</div></div>
-    <div class="stat"><div class="k">Productivity</div><div class="v" id="s-score">0</div></div>
+<div class="sheet" id="sheet">
+  <div class="stamp" id="stamp"></div>
+
+  <div class="formhead">
+    <div class="left">
+      <div class="agency">Office of Internal Controls &amp; Regulatory Conformance</div>
+      <h1>Requisition &amp; Discharge Worksheet</h1>
+      <div class="tag">Form 27-B (Rev. 14) · Mandatory · Retain Per Schedule</div>
+    </div>
+    <div style="display:flex; gap:16px; align-items:flex-start">
+      <div class="formno">
+        <div>Form&nbsp;<b>27-B</b></div>
+        <div>OMB&nbsp;No.&nbsp;<b>0000-0000</b></div>
+        <div>Page 1 of ∞</div>
+      </div>
+      <div class="seal">
+        <span>Seal of</span><span>Compliance</span><span class="yr">⚖</span><span>&amp; Controls</span>
+      </div>
+    </div>
   </div>
 
-  <div class="project" id="project">
-    <div class="ptitle">Active Project</div>
-    <div class="pname" id="pname">—</div>
-    <div class="pmeta" id="pmeta"></div>
-    <div class="pbarwrap"><div class="pbar" id="pbar"></div></div>
-    <ul class="tree" id="tree"></ul>
+  <div class="docket">
+    <div class="f"><span class="k">Docket No.</span><span class="v" id="d-docket">—</span></div>
+    <div class="f"><span class="k">Control ID</span><span class="v" id="d-control">—</span></div>
+    <div class="f"><span class="k">Disposition</span><span class="v" id="d-disp">OPEN</span></div>
+    <div class="f"><span class="k">Filed With</span><span class="v" id="d-dept">—</span></div>
   </div>
+
+  <div class="docket" style="border-top:none">
+    <div class="f"><span class="k">Files Closed</span><span class="v" id="s-proj">0</span></div>
+    <div class="f"><span class="k">Clauses Discharged</span><span class="v" id="s-task">0</span></div>
+    <div class="f"><span class="k">Line Items Raised</span><span class="v" id="s-spawn">0</span></div>
+    <div class="f"><span class="k">Compliance Score</span><span class="v" id="s-score">0</span></div>
+  </div>
+
+  <div class="meterwrap">
+    <div class="lab"><span>Conformance</span><span id="meter-pct">0%</span></div>
+    <div class="meter"><div class="meterfill" id="meter"></div></div>
+  </div>
+
+  <div class="listcap">The undersigned shall execute each enumerated control below. Discharging a control may, at the discretion of the System, raise supplemental controls requiring further documentation.</div>
+  <ul class="tree" id="tree"></ul>
 
   <div class="controls">
-    <button class="primary" id="btn-new">⟳ Abandon &amp; Regenerate</button>
-    <button id="btn-auto">▸ Auto-grind</button>
+    <button class="primary" id="btn-new">⟳ File New Requisition</button>
+    <button id="btn-auto">▸ Auto-Process Queue</button>
   </div>
 
+  <div class="trailcap">Audit Trail — every action herein is logged and non-repudiable.</div>
   <div class="log" id="log"></div>
-  <footer>EVERY TASK IS REAL. NONE OF THE TASKS ARE REAL.</footer>
 </div>
+
+<div class="classbar bottom">This Artifact Is Retained For The Records-Retention Period · Unauthorized Discharge Is A Reportable Event</div>
+<div class="footnote">Every control is material. No control is material. Falsification of this worksheet is, itself, a control requiring discharge.</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 /* ============================================================
-   1. VOCABULARY  — frequency-weighted word banks
-   higher weight = appears more often
+   1. VOCABULARY — frequency-weighted, compliance/bureaucratic
    ============================================================ */
 const VOCAB = {
   verb: [
-    ["Refactor",9],["Migrate",8],["Audit",7],["Deprecate",6],["Consolidate",7],
-    ["Provision",5],["Sunset",4],["Onboard",6],["Streamline",8],["Escalate",5],
-    ["Validate",9],["Reconcile",6],["Benchmark",5],["Triage",7],["Archive",6],
-    ["Synchronize",4],["Decommission",3],["Harden",5],["Normalize",6],["Backfill",4],
-    ["Untangle",6],["Sanitize",5],["Throttle",3],["Rehydrate",2],["Quarantine",3],
-    ["Bless",2],["Vibe-check",2],["Resurrect",3],["Vaporize",2],["Yeet",1]
+    ["File",9],["Submit",9],["Certify",8],["Attest to",6],["Notarize",6],
+    ["Countersign",5],["Escalate",7],["Reconcile",8],["Disclose",6],["Remediate",7],
+    ["Ratify",5],["Audit",8],["Validate",8],["Archive",6],["Redact",5],
+    ["Expedite",5],["Endorse",5],["Substantiate",4],["Authorize",6],["Quarantine",4],
+    ["Sequester",3],["Promulgate",3],["Adjudicate",4],["Rescind",4],["Furnish",5],
+    ["Annotate",5],["Indemnify against",3],["Cross-reference",5],["Triplicate",3],["Initial",6]
   ],
   adj: [
-    ["legacy",9],["downstream",7],["stale",8],["orphaned",6],["flaky",7],
-    ["mission-critical",5],["deprecated",6],["upstream",6],["ambient",4],["spurious",4],
-    ["recursive",5],["headless",4],["bespoke",5],["ephemeral",4],["canonical",6],
-    ["haunted",3],["load-bearing",4],["undocumented",7],["nondeterministic",3],
-    ["quarterly",6],["cursed",2],["vestigial",3],["asymptotic",2],["artisanal",2]
+    ["mandatory",9],["regulatory",8],["statutory",6],["non-conforming",7],["unsigned",7],
+    ["expired",6],["superseding",4],["retroactive",4],["provisional",5],["material",7],
+    ["ancillary",4],["fiduciary",3],["jurisdictional",3],["quarterly",6],["binding",6],
+    ["discretionary",4],["archival",5],["notarized",5],["contingent",4],["antecedent",3],
+    ["classified",3],["outstanding",6],["unreconciled",5],["pre-cleared",4],["ratified",4]
   ],
   noun: [
-    ["pipeline",9],["dashboard",8],["config",9],["dependency",8],["queue",6],
-    ["migration",6],["webhook",5],["cache",7],["schema",7],["backlog",6],
-    ["monolith",4],["microservice",5],["ticket",8],["cron job",4],["manifest",4],
-    ["feature flag",5],["payload",5],["endpoint",6],["rollback",4],["changelog",5],
-    ["roadmap",6],["spreadsheet",7],["staging environment",4],["incident",6],
-    ["retro",5],["standup",6],["kanban board",4],["mutex",2],["heisenbug",2],["gremlin",2]
+    ["attestation",9],["waiver",7],["disclosure form",8],["audit finding",8],["control matrix",6],
+    ["exception request",7],["variance",6],["affidavit",5],["memorandum",7],["requisition",6],
+    ["addendum",6],["compliance gap",6],["remediation plan",6],["sign-off",8],["chain of custody",4],
+    ["retention schedule",4],["incident report",6],["risk register",5],["control narrative",5],
+    ["evidence packet",5],["policy exception",6],["attestation log",5],["Form 27-B",4],["Schedule C",4],
+    ["conflict-of-interest declaration",3],["data-processing addendum",3],["letter of comfort",2],["mandate",5]
   ],
   place: [
-    ["in production",7],["before standup",6],["across the org",5],["in the cloud",6],
-    ["under the deadline",6],["by EOD",8],["in the staging tier",4],["for compliance",5],
-    ["per the roadmap",5],["without telling anyone",4],["one last time",5],
-    ["for the third time",4],["pending review",5],["ahead of the audit",5],
-    ["in a feature branch",4],["over the weekend",3],["against your better judgment",3],
-    ["for the stakeholders",5],["before it spreads",4]
+    ["per Section 4.2",7],["in triplicate",6],["before the audit window closes",6],["pursuant to policy",7],
+    ["for the records-retention period",5],["under penalty of review",5],["by the compliance deadline",8],
+    ["ahead of the regulator",5],["without material exception",5],["for the Steering Committee",5],
+    ["to the satisfaction of Legal",5],["in the official register",4],["prior to certification",5],
+    ["subject to further review",6],["as mandated",6],["with appropriate redactions",4],["of record",4]
   ],
-  // templates reference the banks above; {x} pulls a weighted word
+  dept: [
+    ["Compliance",9],["Legal",8],["Internal Audit",7],["Risk",6],["the Records Office",5],
+    ["the Steering Committee",5],["Procurement",4],["the Regulator",5],["the Ethics Board",4],
+    ["the Controller",4],["the General Counsel",4],["the Audit Committee",4]
+  ],
   template: [
-    ["{verb} the {adj} {noun}",10],
-    ["{verb} every {noun} {place}",8],
-    ["{verb} the {noun} {place}",9],
+    ["{verb} the {adj} {noun}",9],
     ["{verb} the {adj} {noun} {place}",10],
-    ["{verb} the {noun} before the {adj} {noun} does",5],
-    ["{verb} all {adj} {noun}s {place}",6],
-    ["{verb} the {noun} into the {adj} {noun}",6],
-    ["{verb} and re-{verbl} the {adj} {noun}",4],
-    ["Do not {verbl} the {noun} — instead, {verb} it {place}",3],
-    ["{verb} the {adj} {noun} until the {noun} stops complaining",4]
+    ["{verb} every {noun} {place}",7],
+    ["{verb} the {noun} with {dept}",8],
+    ["{verb} the {adj} {noun} and forward it to {dept}",7],
+    ["{verb} the {noun} {place}, per {dept}",6],
+    ["Obtain {dept} sign-off on the {adj} {noun}",7],
+    ["{verb} the {noun} before {dept} escalates",5],
+    ["{verb} the {adj} {noun} in triplicate {place}",4],
+    ["Do not {verbl} the {noun} until {dept} has reviewed it",3],
+    ["{verb} the {adj} {noun}, cc {dept}, {place}",5]
   ]
 };
 
 const PROJECT_NAMES = [
-  ["Operation {adj} {noun}",6],["Project {Noun}fall",4],["The {Noun} Initiative",6],
-  ["{adj} {noun} Overhaul",6],["Q{n} {Noun} Cleanup",7],["The Great {Noun} Migration",4],
-  ["{Noun} Modernization Effort",5],["{adj} {Noun} Taskforce",4],["The {noun}-{noun} Sync",4],
-  ["{Noun} Debt Repayment",5],["Codename: {Noun}",3]
+  ["Compliance Remediation Program {n2}",6],["Form {FF}-{n2} Reconciliation",6],
+  ["The {Noun} Attestation Initiative",6],["Regulatory Mandate RM-{n3}",6],
+  ["{adj} {Noun} Audit Cycle",5],["Internal Control Review — {Noun}",6],
+  ["Q{q} {Noun} Certification",6],["Remediation of Finding No. {n3}",6],
+  ["Operation {Noun} Conformance",4],["{Noun} Control Self-Assessment",5]
 ];
 
-/* ---- weighted random helpers ---- */
 function wpick(bank){
   let total=0; for(const [,w] of bank) total+=w;
   let r=Math.random()*total;
@@ -226,8 +301,8 @@ function wpick(bank){
   return bank[0][0];
 }
 function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-// crude de-verb for "re-{verbl}" / "do not {verbl}" => lowercase base
-function verbLower(){ return wpick(VOCAB.verb).toLowerCase(); }
+function verbLower(){ return wpick(VOCAB.verb).toLowerCase().replace(/ .*/,''); }
+function rint(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
 
 function fill(str){
   return str
@@ -237,89 +312,63 @@ function fill(str){
     .replace(/\{Noun\}/g, ()=>cap(wpick(VOCAB.noun)))
     .replace(/\{noun\}/g, ()=>wpick(VOCAB.noun))
     .replace(/\{place\}/g, ()=>wpick(VOCAB.place))
-    .replace(/\{n\}/g, ()=>1+Math.floor(Math.random()*4));
+    .replace(/\{dept\}/g, ()=>wpick(VOCAB.dept))
+    .replace(/\{FF\}/g, ()=>rint(10,99))
+    .replace(/\{n2\}/g, ()=>rint(2,48))
+    .replace(/\{n3\}/g, ()=>rint(100,999))
+    .replace(/\{q\}/g, ()=>rint(1,4));
 }
 function genSentence(){ return cap(fill(wpick(VOCAB.template))); }
 function genProjectName(){ return fill(wpick(PROJECT_NAMES)); }
+function genRef(){ return '§'+rint(1,12)+'.'+rint(1,40); }
+function genDocket(){ return 'DKT-'+rint(20,29)+'-'+String(rint(1,9999)).padStart(4,'0'); }
+function genControl(){ return 'CTL-'+String.fromCharCode(65+rint(0,5))+rint(100,999); }
 
 /* ============================================================
-   2. PROJECT TREE  — checkbox spawning logic
-   Each node, when checked, procedurally resolves to either:
-     • a BRANCH  -> spawns 2-4 tabbed child checkboxes
-     • a LEAF    -> closes immediately (contributes to "project complete")
-   Branch probability decays with depth so projects terminate.
+   2. PROJECT TREE — control spawning logic (unchanged mechanics)
+     Discharging a control either:
+       • raises SUPPLEMENTAL controls (tabbed sub-clauses), or
+       • is DISCHARGED as a leaf.
    ============================================================ */
-let state = { proj:0, task:0, spawn:1, score:0 };
+let state = { proj:0, task:0, spawn:0, score:0 };
 let nextId = 1;
 let root = null;
 let autoTimer = null;
-
 const MAX_DEPTH = 4;
 
 function branchChance(depth){
-  // depth 0: ~80%, falls off; depth>=MAX_DEPTH: 0
   if(depth >= MAX_DEPTH) return 0;
   return 0.82 - depth*0.22;
 }
-
 function makeNode(depth){
-  return {
-    id: nextId++,
-    text: genSentence(),
-    depth,
-    done: false,
-    resolved: false,   // has its fate (branch/leaf) been decided?
-    children: null,    // array once resolved as branch
-  };
+  return { id: nextId++, ref: genRef(), text: genSentence(), depth, done:false, resolved:false, children:null };
 }
-
 function newProject(){
   nextId = 1;
-  root = {
-    id: 0, depth:-1, done:false, resolved:true, isRoot:true,
-    children: Array.from({length: 2+Math.floor(Math.random()*3)}, ()=>makeNode(0))
-  };
-  state.spawn = countNodes(root);
-  document.getElementById('pname').textContent = genProjectName();
-  document.getElementById('pmeta').textContent =
-    `Priority P${Math.floor(Math.random()*3)} · ${root.children.length} open threads · est. ∞ story points`;
-  render();
-  syncStats();
+  root = { id:0, depth:-1, done:false, resolved:true, isRoot:true,
+           children: Array.from({length: rint(2,4)}, ()=>makeNode(0)) };
+  state.spawn += countNodes(root);
+  document.getElementById('d-docket').textContent = genDocket();
+  document.getElementById('d-control').textContent = genControl();
+  document.getElementById('d-dept').textContent = wpick(VOCAB.dept).replace(/^the /,'');
+  document.getElementById('d-disp').textContent = 'OPEN';
+  document.querySelector('.listcap').dataset.name = genProjectName();
+  render(); syncStats();
 }
-
-function countNodes(n){
-  let c = n.isRoot ? 0 : 1;
-  if(n.children) for(const ch of n.children) c += countNodes(ch);
-  return c;
-}
-
-/* a node is "fully complete" when:
-   - leaf & done, OR
-   - branch & all children fully complete */
-function isComplete(n){
-  if(n.children) return n.children.every(isComplete);
-  return n.done;
-}
-function leafCounts(n){ // {done, total} over leaves
-  if(n.isRoot){ let d=0,t=0; for(const c of n.children){const r=leafCounts(c); d+=r.done; t+=r.total;} return {done:d,total:t}; }
-  if(n.children){ let d=0,t=0; for(const c of n.children){const r=leafCounts(c); d+=r.done; t+=r.total;} return {done:d,total:t}; }
+function countNodes(n){ let c=n.isRoot?0:1; if(n.children) for(const ch of n.children) c+=countNodes(ch); return c; }
+function isComplete(n){ if(n.children) return n.children.every(isComplete); return n.done; }
+function leafCounts(n){
+  if(n.children||n.isRoot){ let d=0,t=0; for(const c of n.children){const r=leafCounts(c); d+=r.done; t+=r.total;} return {done:d,total:t}; }
   return {done: n.done?1:0, total:1};
 }
-
-/* when a user checks an unresolved node -> decide its fate */
 function resolveNode(n){
   n.resolved = true;
   if(Math.random() < branchChance(n.depth)){
-    const k = 2 + Math.floor(Math.random()* (n.depth<2?3:2));
+    const k = rint(2, n.depth<2?4:3);
     n.children = Array.from({length:k}, ()=>makeNode(n.depth+1));
-    state.spawn += k;
-    return 'branch';
+    state.spawn += k; return 'branch';
   } else {
-    n.done = true;
-    n.children = null;
-    state.task++;
-    state.score += 10 + n.depth*5;
-    return 'leaf';
+    n.done = true; n.children = null; state.task++; state.score += 10 + n.depth*5; return 'leaf';
   }
 }
 
@@ -327,54 +376,33 @@ function resolveNode(n){
    3. RENDER
    ============================================================ */
 const treeEl = document.getElementById('tree');
-
 function nodeTag(n){
   if(!n.resolved) return '';
-  if(n.children) {
-    const {done,total}=leafCounts(n);
-    return `<span class="tag branch">subtasks</span><span class="prog">${done}/${total}</span>`;
-  }
-  return `<span class="tag leaf">closed</span>`;
+  if(n.children){ const {done,total}=leafCounts(n); return `<span class="stat-tag supp">supplemental docs req'd</span><span class="prog">${done}/${total}</span>`; }
+  return `<span class="stat-tag disc">discharged</span>`;
 }
-
-function render(){
-  treeEl.innerHTML='';
-  for(const child of root.children) treeEl.appendChild(renderNode(child));
-  updateBar();
-}
-
-function renderNode(n, animate=false){
+function render(){ treeEl.innerHTML=''; for(const c of root.children) treeEl.appendChild(renderNode(c)); updateMeter(); }
+function renderNode(n){
   const li=document.createElement('li');
-  li.className='node'+(isComplete(n)?' done':'')+(animate?' appear':'');
+  li.className='node'+(isComplete(n)?' done':'');
   li.dataset.id=n.id;
-
   const row=document.createElement('div');
-  const locked = n.children && !isComplete(n); // branch w/ pending kids: clicking does nothing
+  const locked = n.children && !isComplete(n);
   row.className='row'+(locked?' locked':'');
   row.innerHTML =
-    `<span class="box"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#0c0d11" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`+
+    `<span class="ref">${n.ref}</span>`+
+    `<span class="box"><svg viewBox="0 0 24 24" fill="none"><path d="M4 13l5 5L20 5" stroke="#9c2a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`+
     `<span class="txt">${n.text}${nodeTag(n)}</span>`;
   row.addEventListener('click', ()=>onClick(n));
   li.appendChild(row);
-
-  if(n.children){
-    const ul=document.createElement('ul');
-    ul.className='spawn';
-    for(const c of n.children) ul.appendChild(renderNode(c));
-    li.appendChild(ul);
-  }
+  if(n.children){ const ul=document.createElement('ul'); for(const c of n.children) ul.appendChild(renderNode(c)); li.appendChild(ul); }
   return li;
 }
-
-/* re-render just one subtree in place (keeps siblings stable) */
 function rerenderNode(n, animateChildren=false){
   const li = treeEl.querySelector(`li.node[data-id="${n.id}"]`);
-  if(!li) { render(); return; }
+  if(!li){ render(); return; }
   const fresh = renderNode(n);
-  if(animateChildren){
-    const ul = fresh.querySelector('ul');
-    if(ul) for(const child of ul.children) child.classList.add('appear');
-  }
+  if(animateChildren){ const ul=fresh.querySelector('ul'); if(ul) for(const ch of ul.children) ch.classList.add('appear'); }
   li.replaceWith(fresh);
 }
 
@@ -382,69 +410,48 @@ function rerenderNode(n, animateChildren=false){
    4. INTERACTION
    ============================================================ */
 function onClick(n){
-  if(n.children){
-    // branch node — not directly toggleable; ignore unless we want uncheck of leaves
-    return;
-  }
-  if(n.done) return; // already a closed leaf, no-op
-
+  if(n.children) return;
+  if(n.done) return;
   const fate = resolveNode(n);
   if(fate==='branch'){
-    log(`<span class="hi">▸ spawned</span> ${n.children.length} subtasks under "<em>${trim(n.text)}</em>"`);
+    log(`<span class="hi">▸ SUPPLEMENTAL</span> ${n.children.length} control(s) raised under ${n.ref} "<em>${trim(n.text)}</em>"`);
     rerenderNode(n, true);
   } else {
-    log(`<span class="hi">✓ closed</span> "${trim(n.text)}"`);
+    log(`<span class="hi">✓ DISCHARGED</span> ${n.ref} "<em>${trim(n.text)}</em>"`);
     rerenderNode(n);
   }
-  // bubble: parent might now be complete -> refresh ancestors' tags/strike
-  refreshAncestors(n);
-  updateBar();
-  syncStats();
-  checkProjectComplete();
+  refreshAncestors(n); updateMeter(); syncStats(); checkProjectComplete();
 }
-
 function findParent(target, node=root){
   if(!node.children) return null;
   if(node.children.includes(target)) return node;
-  for(const c of node.children){ const p=findParent(target,c); if(p) return p; }
-  return null;
+  for(const c of node.children){ const p=findParent(target,c); if(p) return p; } return null;
 }
-function refreshAncestors(n){
-  let p=findParent(n);
-  while(p && !p.isRoot){
-    rerenderNode(p); // updates progress tag + done styling without nuking subtree state
-    p=findParent(p);
-  }
-  // root-level children already refreshed via their own rerender; ensure top tags update
-  if(p && p.isRoot){
-    for(const c of root.children){ if(c!==n) { /* leave */ } }
-  }
-}
+function refreshAncestors(n){ let p=findParent(n); while(p && !p.isRoot){ rerenderNode(p); p=findParent(p); } }
+function trim(s){ return s.length>52 ? s.slice(0,50)+'…' : s; }
 
-function trim(s){ return s.length>46 ? s.slice(0,44)+'…' : s; }
-
-function updateBar(){
+function updateMeter(){
   const {done,total}=leafCounts(root);
   const pct = total? Math.round(100*done/total):0;
-  document.getElementById('pbar').style.width=pct+'%';
-  document.getElementById('pmeta').dataset.pct=pct;
+  document.getElementById('meter').style.width=pct+'%';
+  document.getElementById('meter-pct').textContent=pct+'%';
 }
-
 function checkProjectComplete(){
   if(root.children.length && root.children.every(isComplete)){
-    state.proj++;
-    state.score += 100 + state.spawn*3;
+    state.proj++; state.score += 100 + countNodes(root)*3;
+    document.getElementById('d-disp').textContent='CERTIFIED';
     syncStats();
-    const pj=document.getElementById('project');
-    pj.classList.add('complete');
-    setTimeout(()=>pj.classList.remove('complete'),650);
-    toast('★ PROJECT SHIPPED ★');
-    log(`<span class="gold">★ PROJECT SHIPPED</span> — ${state.spawn} boxes, all closed. +${100+state.spawn*3} prod.`);
-    if(autoTimer){ /* keep grinding */ }
-    setTimeout(newProject, autoTimer?500:900);
+    fireStamp();
+    log(`<span class="gold">★ FILE CLOSED</span> — all controls discharged. Disposition: CERTIFIED COMPLIANT.`);
+    setTimeout(newProject, autoTimer?700:1500);
   }
 }
-
+function fireStamp(){
+  const s=document.getElementById('stamp');
+  s.innerHTML='Certified Compliant<small>Office of Internal Controls · No Further Action</small>';
+  s.classList.remove('fire'); void s.offsetWidth; s.classList.add('fire');
+  toast('★ File Closed — Certified Compliant ★');
+}
 function syncStats(){
   document.getElementById('s-proj').textContent=state.proj;
   document.getElementById('s-task').textContent=state.task;
@@ -453,46 +460,36 @@ function syncStats(){
 }
 
 /* ============================================================
-   5. LOG + TOAST + AUTO
+   5. AUDIT TRAIL + TOAST + AUTO-PROCESS
    ============================================================ */
 const logEl=document.getElementById('log');
+let seq=1;
+function stamp(){ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
 function log(html){
-  const d=document.createElement('div'); d.innerHTML=html;
+  const d=document.createElement('div');
+  d.innerHTML=`<span class="ts">[${String(seq++).padStart(4,'0')} · ${stamp()}]</span><span>${html}</span>`;
   logEl.prepend(d);
-  while(logEl.children.length>40) logEl.lastChild.remove();
+  while(logEl.children.length>50) logEl.lastChild.remove();
 }
 let toastT=null;
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1600);
-}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1900); }
 
-/* auto-grind: repeatedly click the first open leaf */
 function firstOpenLeaf(n=root){
   if(!n.isRoot && !n.children && !n.done) return n;
   if(n.children) for(const c of n.children){ const f=firstOpenLeaf(c); if(f) return f; }
   return null;
 }
-document.getElementById('btn-auto').addEventListener('click', (e)=>{
-  if(autoTimer){
-    clearInterval(autoTimer); autoTimer=null; e.target.textContent='▸ Auto-grind';
-  } else {
-    e.target.textContent='■ Stop grinding';
-    autoTimer=setInterval(()=>{
-      const leaf=firstOpenLeaf();
-      if(leaf) onClick(leaf);
-    }, 240);
-  }
+document.getElementById('btn-auto').addEventListener('click', e=>{
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; e.target.textContent='▸ Auto-Process Queue'; }
+  else { e.target.textContent='■ Halt Processing'; autoTimer=setInterval(()=>{ const l=firstOpenLeaf(); if(l) onClick(l); }, 240); }
 });
 document.getElementById('btn-new').addEventListener('click', ()=>{
-  log('<span class="hi">⟳ regenerated</span> — previous backlog abandoned. No one will notice.');
+  log('<span class="hi">⟳ FILED</span> — prior requisition abandoned and remanded to the Records Office.');
   newProject();
 });
 
-/* boot */
 newProject();
-log('Welcome to <span class="hi">THE BACKLOG</span>. Click any task. Each one may breed.');
+log('Requisition system online. Discharge a control to begin. <em>Note: discharge is not exit.</em>');
 </script>
 </body>
 </html>
