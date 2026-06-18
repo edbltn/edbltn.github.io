@@ -70,6 +70,13 @@
   .stepn{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--bone-faint);
     display:inline-flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:14px;font-weight:600;
     color:var(--bone-dim);background:rgba(255,255,255,.02);}
+  .stepnav{display:flex;justify-content:center;margin-top:18px;}
+  .stepnext{font-family:var(--sans);font-size:12.5px;letter-spacing:.03em;cursor:pointer;
+    display:inline-flex;align-items:center;gap:9px;padding:8px 17px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(255,255,255,.015);color:var(--bone-faint);transition:.22s;}
+  .stepnext:hover{color:var(--bone);border-color:var(--bone-faint);}
+  .stepnext .arr{font-size:15px;line-height:1;transition:transform .22s;}
+  .stepnext:hover .arr{transform:translateY(2px);}
   .panel .sub{font-family:var(--sans);font-size:12.5px;color:var(--bone-faint);margin:0 0 16px;}
   .placard{font-family:var(--body);font-size:14.5px;color:var(--bone-dim);margin:14px 2px 0;line-height:1.45;
     border-top:1px solid var(--line);padding-top:13px;min-height:4.2em;transition:color .2s;}
@@ -291,6 +298,7 @@
       </div>
       <div class="chips" id="senseChips"></div>
       <p class="placard" id="sensePlac">Tap a sense for what it carries.</p>
+      <div class="stepnav"><button type="button" class="stepnext" data-from="0">Next — the operations <span class="arr">↓</span></button></div>
     </section>
 
     <section class="panel">
@@ -299,6 +307,7 @@
       <div class="stage"><svg class="penta" id="penta" viewBox="0 0 440 400" role="group" aria-label="Operations star"></svg></div>
       <div class="chips" id="opChips"></div>
       <p class="placard" id="opPlac">Tap an operation for what it does.</p>
+      <div class="stepnav"><button type="button" class="stepnext" data-from="1">Next — the grain of time <span class="arr">↓</span></button></div>
     </section>
 
     <section class="panel panel-time">
@@ -322,6 +331,7 @@
           <span class="tname">Perpetual</span><span class="tdesc">no last note; you enter and leave</span>
         </div>
       </div>
+      <div class="stepnav"><button type="button" class="stepnext" data-from="2">See the answer <span class="arr">↓</span></button></div>
     </section>
 
   </div>
@@ -565,29 +575,32 @@ const tog=(s,k)=>{s.has(k)?s.delete(k):s.add(k);};
 /* ---- guided flow: once you act in a step, bring the next one into view ---- */
 const PANELS=[...document.querySelectorAll('.instruments .panel')]; // [senses, operations, time]
 const resultsSec=document.querySelector('.results');
-function revealNext(i){
-  const target = i<PANELS.length-1 ? PANELS[i+1] : resultsSec;
-  if(!target) return;
-  const r=target.getBoundingClientRect();
-  if(r.top > innerHeight*0.8) target.scrollIntoView({behavior:'smooth',block:'start'});
+function stepTarget(i){return i<PANELS.length-1 ? PANELS[i+1] : resultsSec;}
+function revealNext(i){ // gentle: only scroll if the next step is below the fold
+  const target=stepTarget(i); if(!target) return;
+  if(target.getBoundingClientRect().top > innerHeight*0.8) target.scrollIntoView({behavior:'smooth',block:'start'});
 }
+// manual "next step" arrows — always advance, so you can pick many before moving on
+document.querySelectorAll('.stepnext').forEach(b=>b.addEventListener('click',()=>{
+  const t=stepTarget(+b.dataset.from); t&&t.scrollIntoView({behavior:'smooth',block:'start'});
+}));
 
 document.querySelectorAll('.region').forEach(r=>{const k=r.dataset.sense;
-  const f=()=>{tog(state.ch,k);setSensePlac(k);render();revealNext(0);};
+  const f=()=>{tog(state.ch,k);setSensePlac(k);render();};
   r.addEventListener('click',f);
   r.addEventListener('mouseenter',()=>setSensePlac(k));
   r.addEventListener('focus',()=>setSensePlac(k));
   r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});});
-senseChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.ch,c.dataset.sense);setSensePlac(c.dataset.sense);render();revealNext(0);}});
+senseChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.ch,c.dataset.sense);setSensePlac(c.dataset.sense);render();}});
 senseChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
 senseChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
-opChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.op,c.dataset.op);setOpPlac(c.dataset.op);render();revealNext(1);}});
+opChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.op,c.dataset.op);setOpPlac(c.dataset.op);render();}});
 opChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
 opChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
-penta.addEventListener('click',e=>{const n=e.target.closest('[data-op]');if(n){tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();revealNext(1);}});
+penta.addEventListener('click',e=>{const n=e.target.closest('[data-op]');if(n){tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
 penta.addEventListener('mouseover',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
 penta.addEventListener('focusin',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
-penta.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();revealNext(1);}});
+penta.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
 document.getElementById('times').addEventListener('click',e=>{const t=e.target.closest('.tcell');if(t){state.dur=(state.dur===t.dataset.dur)?null:t.dataset.dur;render();revealNext(2);}});
 
 /* ---- randomize / clear ---- */
