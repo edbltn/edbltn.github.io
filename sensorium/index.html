@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sensorium — a combinatorial atlas of media</title>
+<meta name="description" content="A combinatorial atlas of media: which senses carry a medium, which operations the mind runs on it, and how it sits in time. By Eric Bolton.">
+<meta property="og:title" content="Sensorium — a combinatorial atlas of media">
+<meta property="og:description" content="Every medium is a chord. Switch on senses and operations and read off what lives at that coordinate.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ericdidierbolton.com/sensorium/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="../me.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14111f; --bg2:#1b1730; --panel:#201a36; --line:#322b4e;
+    --bone:#ECE6D6; --bone-dim:#9b95b0; --bone-faint:#6f6a86;
+    --photic:#F4D35E; --acoustic:#54C7C1; --olfactory:#B68CD8;
+    --gustatory:#E26D8A; --somatic:#E2925A; --kinesthetic:#7FB069;
+    --thermal:#E8573E;
+    --gold:#E9C46A; --time:#B7C0CC;
+    --serif:'Fraunces','Hoefler Text','Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --body:'Spectral','Iowan Old Style',Palatino,Georgia,serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Monaco,'Cascadia Code',monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #221a3d 0%, rgba(34,26,61,0) 60%), var(--bg);
+    color:var(--bone);font-family:var(--body);font-size:17px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:30px 20px 80px;}
+  header{padding:14px 0 8px;}
+  .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--bone-faint);margin:0 0 10px;}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(48px,12vw,96px);line-height:.92;margin:0;letter-spacing:-.01em;
+    background:linear-gradient(180deg,var(--bone) 0%, #c9b9d8 120%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .lead{font-size:clamp(16px,2.4vw,19px);color:var(--bone-dim);max-width:60ch;margin:16px 0 0;}
+  .lead em{color:var(--bone);font-style:italic;}
+  .coord{margin:26px 0 8px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.12));
+    font-family:var(--mono);font-size:clamp(13px,3.6vw,17px);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
+  .coord .seg{display:inline-flex;align-items:center;gap:8px;}
+  .coord .k{color:var(--bone-faint);font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
+  .coord .v{color:var(--bone);} .coord .sep{color:var(--bone-faint);}
+
+  .instruments{display:grid;grid-template-columns:1fr;gap:34px;margin-top:34px;}
+  @media(min-width:840px){.instruments{grid-template-columns:1fr 1fr;align-items:start;}.panel-time{grid-column:1 / -1;}}
+  .panel h2{font-family:var(--serif);font-weight:500;font-size:24px;margin:0 0 2px;}
+  .panel .sub{font-family:var(--sans);font-size:12.5px;color:var(--bone-faint);margin:0 0 16px;}
+  .placard{font-family:var(--body);font-size:14.5px;color:var(--bone-dim);margin:14px 2px 0;line-height:1.45;
+    border-top:1px solid var(--line);padding-top:13px;min-height:4.2em;transition:color .2s;}
+  .placard b{color:var(--bone);font-weight:500;}
+  .placard .pk{font-family:var(--mono);font-size:11px;color:var(--bone-faint);}
+
+  .stage{display:flex;justify-content:center;}
+  .mask{width:min(330px,82vw);height:auto;display:block;overflow:visible;}
+  .face{fill:rgba(236,230,214,.022);stroke:rgba(236,230,214,.20);stroke-width:1.5;}
+  .feat{fill:none;stroke:rgba(236,230,214,.20);stroke-width:1.3;stroke-linecap:round;}
+  .region path,.region ellipse,.region circle,.region line{
+    transition:fill-opacity .4s,stroke-opacity .4s,filter .4s,stroke .4s;cursor:pointer;
+    fill:var(--hue,var(--bone));fill-opacity:.04;stroke:var(--hue,var(--bone));stroke-opacity:.4;stroke-width:1.5;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .region line{fill:none;}
+  .region .open{fill:none;}
+  .region rect.hit{fill:#fff;opacity:0;cursor:pointer;stroke:none;}
+  .region:hover path,.region:hover ellipse,.region:hover circle,.region:hover line{stroke-opacity:.66;}
+  .region.on path,.region.on ellipse,.region.on circle,.region.on line{stroke-opacity:1;filter:drop-shadow(0 0 7px var(--hue));}
+  .region.on path:not(.open):not(.hit),.region.on ellipse,.region.on circle{fill-opacity:.2;}
+  .region[data-sense="P"]{--hue:var(--photic);} .region[data-sense="Ac"]{--hue:var(--acoustic);}
+  .region[data-sense="O"]{--hue:var(--olfactory);} .region[data-sense="G"]{--hue:var(--gustatory);}
+  .region[data-sense="So"]{--hue:var(--somatic);} .region[data-sense="K"]{--hue:var(--kinesthetic);}
+  .region[data-sense="Th"]{--hue:var(--thermal);}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+  .chip{font-family:var(--sans);font-size:13px;display:inline-flex;align-items:center;gap:8px;
+    padding:7px 12px 7px 9px;border-radius:999px;cursor:pointer;border:1px solid var(--line);
+    background:rgba(255,255,255,.015);color:var(--bone-dim);transition:.25s;user-select:none;}
+  .chip .cic{width:18px;height:18px;flex:0 0 18px;}
+  .chip .cic path,.chip .cic circle{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .chip .cic .fillpt{fill:currentColor;stroke:none;}
+  .chip:hover{color:var(--bone);border-color:var(--bone-faint);}
+  .chip.on{color:var(--bone);border-color:var(--hue,var(--gold));background:color-mix(in srgb,var(--hue,var(--gold)) 14%,transparent);}
+  .chip.on .cic{filter:drop-shadow(0 0 5px var(--hue,var(--gold)));}
+  .chip[data-sense="P"]{--hue:var(--photic);} .chip[data-sense="Ac"]{--hue:var(--acoustic);}
+  .chip[data-sense="O"]{--hue:var(--olfactory);} .chip[data-sense="G"]{--hue:var(--gustatory);}
+  .chip[data-sense="So"]{--hue:var(--somatic);} .chip[data-sense="K"]{--hue:var(--kinesthetic);}
+  .chip[data-sense="Th"]{--hue:var(--thermal);}
+  .chip[data-op]{--hue:var(--gold);color:var(--bone-dim);}
+  .chip[data-op].on{color:var(--gold);}
+  .chip .nm{opacity:.6;font-size:12px;}
+
+  .penta{width:min(340px,82vw);height:auto;display:block;overflow:visible;}
+  .penta .grid{stroke:rgba(236,230,214,.13);stroke-width:1;fill:none;}
+  .penta .star{stroke:rgba(233,196,106,.15);stroke-width:1;fill:none;}
+  .penta .shard{fill:color-mix(in srgb,var(--gold) 17%,transparent);stroke:var(--gold);stroke-width:1.5;stroke-linejoin:round;transition:.35s;filter:drop-shadow(0 0 9px rgba(233,196,106,.4));}
+  .penta .node{fill:var(--bg);stroke:rgba(236,230,214,.34);stroke-width:1.4;cursor:pointer;transition:.3s;}
+  .penta .node:hover{stroke:var(--gold);}
+  .penta .node.on{fill:color-mix(in srgb,var(--gold) 16%,var(--bg));stroke:var(--gold);filter:drop-shadow(0 0 7px var(--gold));}
+  .penta .picon path,.penta .picon circle{fill:none;stroke:var(--gold);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.5;transition:.3s;pointer-events:none;}
+  .penta .picon .fillpt{fill:var(--gold);stroke:none;opacity:.5;transition:.3s;}
+  .penta .picon-g.on .picon path,.penta .picon-g.on .picon circle,.penta .picon-g.on .picon .fillpt{opacity:1;}
+  .penta .picon-g.on .picon{filter:drop-shadow(0 0 4px var(--gold));}
+  .penta .vlabel{font-family:var(--serif);font-size:14px;fill:var(--bone-dim);transition:.3s;cursor:pointer;}
+  .penta .vlabel.on{fill:var(--bone);}
+
+  .times{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  @media(min-width:560px){.times{grid-template-columns:repeat(4,1fr);}}
+  .tcell{border:1px solid var(--line);border-radius:14px;padding:18px 12px 14px;cursor:pointer;background:rgba(255,255,255,.012);
+    text-align:center;transition:.3s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .tcell:hover{border-color:var(--bone-faint);}
+  .tcell.on{border-color:var(--time);background:color-mix(in srgb,var(--time) 12%,transparent);}
+  .tglyph{width:68px;height:68px;}
+  .tglyph .ink{stroke:var(--time);fill:none;stroke-width:1.6;stroke-linecap:round;opacity:.55;transition:.3s;}
+  .tglyph .dot{fill:var(--time);opacity:.6;transition:.3s;}
+  .tcell.on .ink{opacity:1;filter:drop-shadow(0 0 6px rgba(183,192,204,.6));}
+  .tcell.on .dot{opacity:1;}
+  .tname{font-family:var(--serif);font-size:18px;color:var(--bone);}
+  .tdesc{font-family:var(--sans);font-size:10.5px;color:var(--bone-faint);line-height:1.35;}
+  @media(prefers-reduced-motion: no-preference){
+    .ripple{transform-origin:center;animation:ripple 2.8s ease-out infinite;}
+    @keyframes ripple{0%{transform:scale(.18);opacity:.9;}70%{opacity:0;}100%{transform:scale(1);opacity:0;}}
+    .spiral{transform-origin:center;animation:spin 14s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .orbit{transform-origin:center;animation:spin 6s linear infinite;}
+  }
+
+  .results{margin-top:48px;border-top:1px solid var(--line);padding-top:30px;}
+  .results h2{font-family:var(--serif);font-weight:500;font-size:26px;margin:0 0 4px;}
+  .verdict{font-family:var(--sans);font-size:13px;color:var(--bone-dim);margin:0 0 22px;line-height:1.5;}
+  .verdict .ground{color:var(--gold);} .verdict .hint{color:var(--bone-faint);}
+  .grid-cards{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:680px){.grid-cards{grid-template-columns:1fr 1fr;}}
+  .card{border:1px solid var(--line);border-radius:14px;padding:16px 17px;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.10));transition:.25s;cursor:pointer;}
+  .card:hover{border-color:var(--bone-faint);transform:translateY(-1px);}
+  .card.exact{border-color:color-mix(in srgb,var(--gold) 60%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--gold) 32%,transparent),0 0 24px rgba(233,196,106,.12) inset;}
+  .card.exact:hover{border-color:var(--gold);}
+  .card h3{font-family:var(--serif);font-weight:500;font-size:21px;margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .wikilink{color:var(--bone);text-decoration:none;border-bottom:1px dotted color-mix(in srgb,var(--gold) 55%,transparent);cursor:pointer;transition:color .2s;}
+  .wikilink:hover{color:var(--gold);}
+  .tag{font-family:var(--sans);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--bg);background:var(--gold);padding:3px 7px;border-radius:999px;white-space:nowrap;}
+  .blurb{font-size:14.5px;color:var(--bone-dim);margin:8px 0 0;line-height:1.45;font-style:italic;}
+  .profile{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 12px;align-items:center;}
+  .pb{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;border:1px solid var(--line);color:var(--bone-dim);display:inline-flex;align-items:center;gap:5px;}
+  .pb i{width:7px;height:7px;border-radius:50%;display:inline-block;font-style:normal;}
+  .pb.op{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 30%,var(--line));}
+  .pb.dur{color:var(--time);border-color:color-mix(in srgb,var(--time) 28%,var(--line));}
+  .pb.none{color:var(--bone-faint);}
+  .items{margin:0;padding:0;list-style:none;}
+  .items li{font-size:15px;color:var(--bone-dim);padding:3px 0 3px 16px;position:relative;line-height:1.4;}
+  .items li::before{content:"";position:absolute;left:2px;top:11px;width:5px;height:5px;border-radius:50%;background:var(--bone-faint);}
+  .items li b{color:var(--bone);font-weight:500;font-style:italic;}
+  .items li .wikilink{color:inherit;border-bottom:1px dotted color-mix(in srgb,var(--gold) 40%,transparent);}
+  .items li .wikilink:hover{color:var(--gold);}
+  .empty{border:1px dashed var(--line);border-radius:14px;padding:24px 20px;color:var(--bone-dim);font-size:16px;margin-bottom:18px;}
+  .empty b{color:var(--bone);font-weight:500;} .glyph-O{font-family:var(--mono);color:var(--gold);}
+  .subhead{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--bone-faint);margin:6px 0 12px;}
+  footer{margin-top:54px;color:var(--bone-faint);font-family:var(--sans);font-size:12px;line-height:1.7;}
+
+  /* wikipedia dark hovercard */
+  #wikicard{position:fixed;z-index:60;width:340px;max-width:90vw;background:var(--bg2);border:1px solid var(--line);
+    border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden;opacity:0;transform:translateY(6px);
+    pointer-events:none;transition:opacity .18s,transform .18s;font-family:var(--body);}
+  #wikicard.show{opacity:1;transform:none;pointer-events:auto;}
+  #wikicard .wc-imgwrap{position:relative;display:block;}
+  #wikicard .wc-img{width:100%;height:210px;object-fit:cover;display:block;background:var(--panel);}
+  #wikicard .wc-imgwrap .wc-title{position:absolute;left:0;right:0;bottom:0;margin:0;padding:34px 16px 12px;
+    background:linear-gradient(180deg,rgba(20,17,31,0),rgba(20,17,31,.86) 70%);
+    font-family:var(--serif);font-weight:500;font-size:21px;color:#fff;line-height:1.12;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+  #wikicard .wc-body{padding:13px 16px 15px;}
+  #wikicard .wc-eyebrow{font-family:var(--sans);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-faint);margin:0 0 5px;}
+  #wikicard .wc-title{font-family:var(--serif);font-weight:500;font-size:19px;color:var(--bone);margin:0 0 7px;line-height:1.15;}
+  #wikicard .wc-extract{font-size:13.5px;line-height:1.5;color:var(--bone-dim);margin:0;}
+  #wikicard .wc-foot{margin-top:12px;}
+  #wikicard .wc-foot a{font-family:var(--sans);font-size:12px;color:var(--gold);text-decoration:none;letter-spacing:.02em;}
+  #wikicard .wc-foot a:hover{text-decoration:underline;}
+  #wikicard .wc-load{font-family:var(--sans);font-size:13px;color:var(--bone-faint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">A combinatorial atlas of media</p>
+    <h1>Sensorium</h1>
+    <p class="lead">Every medium is a chord. <em>Which senses carry it, which operations the mind runs on it, and how it sits in time.</em> Switch them on and read off what lives at that coordinate.</p>
+    <div class="coord" aria-live="polite">
+      <span class="seg"><span class="k">Senses</span><span class="v" id="cSenses">∅</span></span>
+      <span class="sep">/</span>
+      <span class="seg"><span class="k">Operations</span><span class="v" id="cOps">∅</span></span>
+      <span class="sep">/</span>
+      <span class="seg"><span class="k">Time</span><span class="v" id="cDur">any</span></span>
+    </div>
+  </header>
+
+  <div class="instruments">
+
+    <section class="panel">
+      <h2>The senses</h2>
+      <p class="sub">The channels that carry a medium in. Tap a feature to open one.</p>
+      <div class="stage">
+        <svg class="mask" viewBox="0 0 400 560" role="group" aria-label="Sensory mask">
+          <path class="face" d="M200 40 C150 40 104 78 96 168 C89 212 87 256 96 300 C104 362 128 432 172 476 C185 500 215 500 228 476 C272 432 296 362 304 300 C313 256 311 212 304 168 C296 78 250 40 200 40 Z"/>
+
+          <!-- Kinesthetic: forehead band + plumb (no dial) -->
+          <g class="region" data-sense="K" tabindex="0" aria-label="Balance">
+            <rect class="hit" x="120" y="148" width="160" height="70"/>
+            <path d="M118 178 C150 152 250 152 282 178 C262 214 138 214 118 178 Z"/>
+            <line x1="200" y1="162" x2="200" y2="192"/>
+            <circle cx="200" cy="196" r="3.4"/>
+          </g>
+
+          <!-- Thermal: heat-shimmer at the temples -->
+          <g class="region" data-sense="Th" tabindex="0" aria-label="Temperature">
+            <rect class="hit" x="104" y="214" width="42" height="40"/>
+            <rect class="hit" x="254" y="214" width="42" height="40"/>
+            <path class="open" d="M119 224 q6 7 0 13 q-6 6 0 13"/>
+            <path class="open" d="M131 222 q6 7 0 13 q-6 6 0 13"/>
+            <path class="open" d="M281 224 q-6 7 0 13 q6 6 0 13"/>
+            <path class="open" d="M269 222 q-6 7 0 13 q6 6 0 13"/>
+          </g>
+
+          <!-- Olfactory: nose (single outer silhouette) -->
+          <g class="region" data-sense="O" tabindex="0" aria-label="Smell">
+            <rect class="hit" x="178" y="252" width="44" height="140"/>
+            <path d="M197 268 C194 300 192 332 188 350 C181 358 181 372 190 378 C196 381 204 381 210 378 C219 372 219 358 212 350 C208 332 206 300 203 268 Z"/>
+          </g>
+
+          <!-- Photic: eyes (empty almonds, no pupils) -->
+          <g class="region" data-sense="P" tabindex="0" aria-label="Sight">
+            <rect class="hit" x="128" y="254" width="54" height="32"/>
+            <rect class="hit" x="218" y="254" width="54" height="32"/>
+            <path d="M134 270 C146 259 166 259 178 270 C166 281 146 281 134 270 Z"/>
+            <path d="M222 270 C234 259 254 259 266 270 C254 281 234 281 222 270 Z"/>
+          </g>
+
+          <!-- Acoustic: ears (single outline; inner edge follows the face contour) -->
+          <g class="region" data-sense="Ac" tabindex="0" aria-label="Sound">
+            <rect class="hit" x="58" y="250" width="48" height="96"/>
+            <rect class="hit" x="294" y="250" width="48" height="96"/>
+            <path d="M90 260 C74 258 66 282 70 306 C73 326 84 340 99 334 C98 310 92 282 90 260 Z"/>
+            <path d="M310 260 C326 258 334 282 330 306 C327 326 316 340 301 334 C302 310 308 282 310 260 Z"/>
+          </g>
+
+          <!-- Somatic: cheeks (empty) -->
+          <g class="region" data-sense="So" tabindex="0" aria-label="Touch">
+            <rect class="hit" x="118" y="312" width="62" height="50"/>
+            <rect class="hit" x="220" y="312" width="62" height="50"/>
+            <ellipse cx="149" cy="336" rx="29" ry="22" transform="rotate(-8 149 336)"/>
+            <ellipse cx="251" cy="336" rx="29" ry="22" transform="rotate(8 251 336)"/>
+          </g>
+
+          <!-- Gustatory: mouth (single outer lip silhouette) -->
+          <g class="region" data-sense="G" tabindex="0" aria-label="Taste">
+            <rect class="hit" x="152" y="404" width="96" height="46"/>
+            <path d="M167 421 C176 414 187 413 196 417 C199 418 201 418 204 417 C213 413 224 414 233 421 C226 433 214 441 200 441 C186 441 174 433 167 421 Z"/>
+          </g>
+        </svg>
+      </div>
+      <div class="chips" id="senseChips"></div>
+      <p class="placard" id="sensePlac">Tap a sense for what it carries.</p>
+    </section>
+
+    <section class="panel">
+      <h2>The operations</h2>
+      <p class="sub">What the mind does with the signal once it is in. Tap a point of the star.</p>
+      <div class="stage"><svg class="penta" id="penta" viewBox="0 0 440 400" role="group" aria-label="Operations star"></svg></div>
+      <div class="chips" id="opChips"></div>
+      <p class="placard" id="opPlac">Tap an operation for what it does.</p>
+    </section>
+
+    <section class="panel panel-time">
+      <h2>The grain of time</h2>
+      <p class="sub">How it occupies duration. Tap to set; tap again for any.</p>
+      <div class="times" id="times">
+        <div class="tcell" data-dur="static" tabindex="0">
+          <svg class="tglyph" viewBox="0 0 80 80"><circle class="ink" cx="40" cy="40" r="13"/><circle class="ink" cx="40" cy="40" r="24" style="opacity:.25"/><circle class="dot" cx="40" cy="40" r="4.5"/></svg>
+          <span class="tname">Static</span><span class="tdesc">a held instant — no unfolding</span>
+        </div>
+        <div class="tcell" data-dur="short" tabindex="0">
+          <svg class="tglyph" viewBox="0 0 80 80"><circle class="ink ripple" cx="40" cy="40" r="30"/><circle class="dot" cx="40" cy="40" r="4.5"/></svg>
+          <span class="tname">Short</span><span class="tdesc">a single pass, then over</span>
+        </div>
+        <div class="tcell" data-dur="long" tabindex="0">
+          <svg class="tglyph" viewBox="0 0 80 80"><path class="ink spiral" id="spiralPath"/><circle class="dot" cx="40" cy="40" r="3"/></svg>
+          <span class="tname">Long</span><span class="tdesc">accumulates over time</span>
+        </div>
+        <div class="tcell" data-dur="perpetual" tabindex="0">
+          <svg class="tglyph" viewBox="0 0 80 80"><circle class="ink" cx="40" cy="40" r="22"/><g class="orbit"><circle class="dot" cx="40" cy="18" r="4.5"/></g></svg>
+          <span class="tname">Perpetual</span><span class="tdesc">no last note; you enter and leave</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <section class="results">
+    <h2>The lattice answers</h2>
+    <p class="verdict" id="verdict"></p>
+    <div id="out"></div>
+  </section>
+
+  <footer>
+    Senses — Photic · Acoustic · Gustatory · Olfactory · Somatic · Kinesthetic · Thermal.&nbsp;&nbsp;
+    Operations — Spatial · Temporal · Linguistic · sYmbolic · Affective · Mimetic · Enactive.&nbsp;&nbsp;
+    <span class="glyph-O">∅</span> with nothing firing is raw sensation, before the mind shapes it.
+  </footer>
+</div>
+
+<div id="wikicard" aria-hidden="true"></div>
+
+<script>
+const SENSES=[
+  {k:'P',nm:'Sight',full:'Photic'},{k:'Ac',nm:'Sound',full:'Acoustic'},
+  {k:'O',nm:'Smell',full:'Olfactory'},{k:'G',nm:'Taste',full:'Gustatory'},
+  {k:'So',nm:'Touch',full:'Somatic'},{k:'K',nm:'Balance',full:'Kinesthetic'},
+  {k:'Th',nm:'Warmth',full:'Thermal'}];
+const OPS=[{k:'S',nm:'Spatial'},{k:'T',nm:'Temporal'},{k:'L',nm:'Linguistic'},{k:'Y',nm:'Symbolic'},{k:'A',nm:'Affective'},{k:'M',nm:'Mimetic'},{k:'E',nm:'Enactive'}];
+const SENSE_HUE={P:'var(--photic)',Ac:'var(--acoustic)',O:'var(--olfactory)',G:'var(--gustatory)',So:'var(--somatic)',K:'var(--kinesthetic)',Th:'var(--thermal)'};
+const DURNAME={static:'Static',short:'Short',long:'Long',perpetual:'Perpetual'};
+
+const SENSE_DESC={
+  P:'Light striking the eye — brightness, color, edge, and depth. The channel of everything visible.',
+  Ac:'Pressure waves reaching the ear — pitch, rhythm, and timbre, from a whisper to a symphony.',
+  O:'Airborne molecules read by the nose — the most direct line straight to memory and emotion.',
+  G:'Flavor on the tongue — sweet, sour, salt, bitter, umami, and all the chemistry layered on top.',
+  So:'The skin\u2019s report — pressure, texture, and weight; the body touching the world.',
+  K:'The inner ear and muscles sensing motion, tilt, and where the body is in space.',
+  Th:'Warmth and cold read by the skin\u2019s thermoreceptors — heat as a channel of its own, apart from pressure and touch.'
+};
+const OP_DESC={
+  S:'The mind builds volume and arrangement — where things sit, how far, the feel of being inside or around them.',
+  T:'Meaning unfolds in sequence — before and after, pacing; an order that can\u2019t be rearranged without loss.',
+  L:'The language faculty engages — words parsed into sense, syntax, and story; meaning carried by tongue or text.',
+  Y:'Non-verbal signs decoded — notation, code, diagram, icon: marks that stand for something without being words.',
+  A:'The limbic hit — mood and feeling, the visceral pull that lands before thought.',
+  M:'A mind is present in the work — an agent or maker whose intention and interiority you read.',
+  E:'You are inside the loop — your own actions change the work and it answers; meaning emerges through doing, not just receiving.'
+};
+
+const OPICON={
+  S:'<path d="M0 -11 L9.5 -5.5 L9.5 5.5 L0 11 L-9.5 5.5 L-9.5 -5.5 Z"/><path d="M0 0 L0 -11 M0 0 L9.5 5.5 M0 0 L-9.5 5.5"/>',
+  T:'<path d="M-11 0 q3.5 -6 7 0 q3.5 6 7 0 L10 0"/><path d="M6 -4 L10 0 L6 4"/>',
+  L:'<path d="M-7 9 L0 -9 L7 9 M-4.3 2.5 L4.3 2.5"/>',
+  Y:'<path d="M0 -10 L0 10 M-7 -10 L7 -10 M-6 0 L6 0"/>',
+  A:'<path class="fillpt" d="M0 -11 C5 -3 8 1 4.5 7 C2.5 10.5 -2.5 10.5 -4.5 7 C-8 1 -3 -4 0 -11 Z"/>',
+  M:'<circle cx="0" cy="0" r="10"/><circle class="fillpt" cx="-3.5" cy="-2" r="1.7"/><circle class="fillpt" cx="3.5" cy="-2" r="1.7"/><path d="M-3.5 3.5 Q0 6.5 3.5 3.5"/>',
+  E:'<path d="M8.5 -1 A8.5 8.5 0 1 1 5 -7.4"/><path d="M5 -10.5 L5 -6.5 L9 -6.5"/><circle class="fillpt" cx="0" cy="1.5" r="2.2"/>'
+};
+const SENSEICON={
+  P:'<path d="M-11 0 Q0 -8 11 0 Q0 8 -11 0 Z"/><circle cx="0" cy="0" r="3.2"/>',
+  Ac:'<circle class="fillpt" cx="-7" cy="0" r="2"/><path d="M-2 -8 A8 8 0 0 1 -2 8"/><path d="M3 -10 A11 11 0 0 1 3 10"/>',
+  O:'<path d="M-5 9 q-4 -5 0 -9 q4 -4 0 -9"/><path d="M5 9 q-4 -5 0 -9 q4 -4 0 -9"/>',
+  G:'<path class="fillpt" d="M0 -10 C5 -2 8 3 4 7 A6 6 0 0 1 -4 7 C-8 3 -5 -2 0 -10 Z"/>',
+  So:'<path d="M-9 2 A9 9 0 0 1 9 2"/><path d="M-6 4 A6 7 0 0 1 6 4"/><path d="M-3 6 A3 4 0 0 1 3 6"/>',
+  K:'<path d="M-8 -8 A11 11 0 0 1 8 -8"/><path d="M0 -10 L0 4"/><circle class="fillpt" cx="0" cy="7" r="3"/>',
+  Th:'<path d="M-6 -9 q4 4 0 9 q-4 5 0 9 M0 -9 q4 4 0 9 q-4 5 0 9 M6 -9 q4 4 0 9 q-4 5 0 9"/>'
+};
+const sIco=k=>`<svg class="cic" viewBox="-14 -14 28 28" aria-hidden="true">${SENSEICON[k]}</svg>`;
+const oIco=k=>`<svg class="cic" viewBox="-14 -14 28 28" aria-hidden="true"><g class="picon">${OPICON[k]}</g></svg>`;
+
+const M=(name,ch,op,dur,blurb,wiki,items)=>({name,ch,op,dur,blurb,wiki,items});
+const MEDIA=[
+  M('Pure tone',['Ac'],[],'perpetual','A single sustained frequency, no melody or change — sound reduced to its barest physical fact.','Pure tone',['La Monte Young & Marian Zazeela — <b>Dream House</b>','Sachiko M — sine waves']),
+  M('Color field (Ganzfeld)',['P'],[],'perpetual','Vision flooded with even light until depth and edge dissolve and you notice seeing itself.','Ganzfeld effect',['James Turrell — <b>Ganzfeld</b> works']),
+  M('Single-molecule scent',['O'],[],'static','One synthesized aroma worn alone — smell pared down to a single clean note.','Aroma compound',['Escentric Molecules — <b>Molecule 01</b>']),
+  M('Pure rhythm',['Ac'],['T'],'short','Pulse without pitch or words — time made audible through sheer recurrence.','Rhythm',['Ligeti — <b>Poème Symphonique</b> (100 metronomes)','Steve Reich — <b>Clapping Music</b>']),
+  M('Flicker film',['P'],['T'],'short','Alternating black and white frames that act on the retina directly, bypassing image.','Flicker film',['Tony Conrad — <b>The Flicker</b>']),
+  M('Statement / sign',['P'],['L'],'static','Cold declarative language shown as the work itself — meaning without ornament.','Conceptual art',['Lawrence Weiner','On Kawara — <b>Today Series</b>']),
+  M('Kinetic sculpture',['P'],['S','T'],'perpetual','Forms that move, drawing shapes in space across time.','Kinetic art',['Calder — mobiles','Theo Jansen — <b>Strandbeest</b>']),
+  M('Labyrinth',['P','K'],['S'],'perpetual','A path you walk rather than view, folding space into one contemplative route.','Labyrinth',['Chartres Cathedral labyrinth','Robert Morris']),
+  M('Hedge maze',['P','K'],['S','E'],'short','A branching puzzle of walls you solve with your feet — wrong turns, dead ends, and the slow building of a mental map.','Maze',['Hampton Court Maze','Longleat hedge maze']),
+  M('Hyperreal figure',['P','So'],['M'],'static','A sculpted human so lifelike its mere presence unsettles.','Hyperrealism (sculpture)',['Ron Mueck','Duane Hanson']),
+  M('Portrait (the gaze)',['P'],['M'],'static','A face rendered to hold your eye and return it — presence distilled to a look.','Portrait',['Fayum mummy portraits','Chuck Close']),
+  M('Painting (abstract)',['P'],['A'],'static','Color, form, and gesture organized for direct feeling, with nothing to depict.','Abstract art',['Hilma af Klint — <b>The Ten Largest</b> (1907)']),
+  M('Painting (figural)',['P'],['A','M'],'static','An image of people, places, or scenes — the world re-presented on a surface.','Figurative art',['Bosch — <b>The Garden of Earthly Delights</b>']),
+  M('Photography',['P'],['A','M'],'static','Light fixed from a real instant — evidence and composition at once.','Photography',['Cindy Sherman — <b>Untitled Film Stills</b>']),
+  M('Photomontage',['P'],['Y','A','M'],'static','Cut and recombined images that argue or dream by collision.','Photomontage',['Hannah Höch — <b>Cut with the Kitchen Knife</b>']),
+  M('Calligraphy',['P'],['Y','L','A'],'static','The written sign raised to gesture — language whose meaning lives as much in the stroke as the word.','Calligraphy',['Islamic <b>calligraphy</b>','Hassan Massoudy','Japanese <b>shodō</b>']),
+  M('Concrete poetry',['P'],['S','L','A'],'static','Words arranged so their shape on the page carries as much as their sense.','Concrete poetry',['Apollinaire — <b>Calligrammes</b>','Xu Bing — <b>Book from the Sky</b>']),
+  M('Aphorism / fragment',['P'],['L','A'],'static','Compressed text that detonates a whole thought in a sentence or two.','Aphorism',['Wittgenstein — <b>Tractatus</b>']),
+  M('Diagram / data portrait',['P'],['S','Y'],'static','Information given spatial form so a pattern can be seen at a glance.','Infographic',['W. E. B. Du Bois — <b>data portraits</b> (1900)']),
+  M('Graphic score',['P'],['S','Y','A'],'static','Music written as image — notation freed from the stave into pure visual instruction.','Graphic notation (music)',['Cornelius Cardew — <b>Treatise</b>','Cathy Berberian — <b>Stripsody</b>']),
+  M('Cryptic crossword',['P'],['L','Y','E'],'short','A lattice of clued wordplay you fill in by hand — language treated as a solvable machine.','Crossword',['<b>The Times</b> cryptic','Araucaria (John Graham)']),
+  M('Text-light',['P'],['L','A'],'perpetual','Words rendered in glowing signage — language as public, ambient object.','Neon art',['Bruce Nauman','Jenny Holzer — <b>Truisms</b>']),
+  M('Sculpture',['P','So'],['S','A'],'static','Mass and surface in three dimensions, meant to be circled by the eye.','Sculpture',['Louise Bourgeois — <b>Maman</b>','Richard Serra']),
+  M('Textile / fiber',['P','So'],['A'],'static','Woven, knotted, or stitched material raised to the level of art.','Fiber art',['Sheila Hicks','Anni Albers']),
+  M('Fashion (garment)',['P','So'],['A'],'static','Clothing designed as sculpture for the body.','Fashion design',['Rei Kawakubo — CdG <b>Body Meets Dress</b>','Iris van Herpen']),
+  M('Architecture',['P','So','K','Th'],['S'],'perpetual','Built space you inhabit, shaping movement and light over years.','Architecture',['Gaudí — <b>Sagrada Família</b>','Zumthor — <b>Therme Vals</b>']),
+  M('Light installation',['P'],['S','A'],'perpetual','Light itself as the medium, sculpting a room or a sky.','Light art',['Turrell — <b>Roden Crater</b>','Eliasson — <b>The Weather Project</b>']),
+  M('Fog / water sculpture',['P','So','Th'],['S','T','A'],'perpetual','Mist or water shaped into ephemeral, walk-through form.','Installation art',['Fujiko Nakaya — fog sculptures']),
+  M('Land art',['P','So','K'],['S','A'],'perpetual','The landscape reworked at vast scale, weathering with time.','Land art',['Smithson — <b>Spiral Jetty</b>','De Maria — <b>The Lightning Field</b>']),
+  M('Garden',['P','O','K'],['S','A'],'perpetual','Living, seasonal space composed for contemplation as you pass through.','Garden design',['Ryōan-ji rock garden','Ian Hamilton Finlay — <b>Little Sparta</b>']),
+  M('Pollen field',['P','O'],['S','A'],'perpetual','Raw pollen sifted into luminous fields — color and scent as quiet installation.','Wolfgang Laib',['Wolfgang Laib']),
+  M('Memorial',['P','K'],['S','L','A'],'perpetual','Built space that holds public grief, charged with what it names.','Memorial',['Maya Lin — <b>Vietnam Veterans Memorial</b>','Eisenman — <b>Berlin Holocaust Memorial</b>']),
+  M('Comics / graphic novel',['P'],['T','L','A','M'],'long','Image and word in sequenced panels — time laid out across the page.','Graphic novel',['Chris Ware — <b>Building Stories</b>','Spiegelman — <b>Maus</b>']),
+  M('Silent film',['P'],['T','A','M'],'long','Moving images that tell a story through picture and motion alone.','Silent film',['Vertov — <b>Man with a Movie Camera</b>']),
+  M('Moving-image art',['P','Ac'],['S','T','A'],'perpetual','Projected video as installation — often looping, spatial, unhurried.','Video art',['Christian Marclay — <b>The Clock</b>','Bill Viola']),
+  M('Projection / data sculpture',['P','Ac'],['S','T','A'],'perpetual','Data and light projected into immersive, shifting fields.','Projection mapping',['Refik Anadol — <b>Machine Hallucinations</b>']),
+  M('Fireworks / gunpowder',['P','Ac'],['T','A'],'short','Explosive light drawn briefly on the sky — awe in seconds.','Fireworks',['Cai Guo-Qiang — <b>Sky Ladder</b>']),
+  M('Song / single',['Ac'],['T','L','A'],'short','A short musical statement of melody, rhythm, and often words.','Song',['Scott Walker — <b>Farmer in the City</b>']),
+  M('Album (instrumental)',['Ac'],['T','A'],'long','A long musical journey without lyrics, heard as a whole.','Album',['Miles Davis — <b>Bitches Brew</b>']),
+  M('Concept album',['Ac'],['T','L','A','M'],'long','A record bound by one narrative or theme across every track.','Concept album',['Kendrick Lamar — <b>To Pimp a Butterfly</b>','The Caretaker — <b>Everywhere at the End of Time</b>','Captain Beefheart — <b>Trout Mask Replica</b>']),
+  M('Drone / ambient',['Ac'],['A'],'perpetual','Slowly evolving sound that fills time and space without event.','Drone music',['Eno — <b>Music for Airports</b>','Basinski — <b>The Disintegration Loops</b>']),
+  M('Musique concrète',['Ac'],['T','A'],'short','Music assembled from recorded real-world sound rather than instruments.','Musique concrète',['Pierre Schaeffer — <b>Étude aux chemins de fer</b>']),
+  M('Sound poetry',['Ac'],['T','L','A'],'short','Voice used for pure sound — phonemes and rhythm over meaning.','Sound poetry',['Kurt Schwitters — <b>Ursonate</b>']),
+  M('Spoken-word poetry',['Ac'],['T','L','A','M'],'short','Poetry written for the voice and the room — language performed, a maker present in every breath.','Spoken word',['Kae Tempest — <b>Brand New Ancients</b>','Saul Williams']),
+  M('Oratory',['Ac'],['T','L','A','M'],'short','Spoken word crafted to move a live audience in the moment.','Public speaking',['Martin Luther King — <b>I Have a Dream</b>']),
+  M('Audiobook',['Ac'],['T','L','M'],'long','A book delivered by a single reading voice — text re-channelled through the ear.','Audiobook',['Toni Morrison reads <b>Beloved</b>','LeVar Burton']),
+  M('Radio drama',['Ac'],['T','L','A','M'],'long','Story told through voice, sound, and silence for the ear alone.','Radio drama',['Orson Welles — <b>The War of the Worlds</b>']),
+  M('Podcast (narrative)',['Ac'],['T','L','M'],'long','Serialized audio storytelling — intimate and voice-led.','Podcast',['<b>S-Town</b>']),
+  M('Field recording',['Ac'],['A'],'long','The captured sound of a place, presented as the work itself.','Field recording',['Chris Watson — <b>Weather Report</b>']),
+  M('Spatial / multichannel sound',['Ac'],['S','A'],'perpetual','Sound distributed through space so you move within it.','Sound installation',['Janet Cardiff — <b>The Forty Part Motet</b>','Max Neuhaus — <b>Times Square</b>']),
+  M('Audio walk',['Ac','K'],['S','T','L','A'],'short','A recorded voice guiding your body through a real place in real time.','Soundwalk',['Cardiff & Miller — <b>Her Long Black Hair</b>']),
+  M('Novel',['P'],['T','L','A','M'],'long','Extended prose fiction — a whole world built over hundreds of pages.','Novel',['Danielewski — <b>House of Leaves</b>','Nabokov — <b>Pale Fire</b>','Calvino — <b>If on a winter\u2019s night a traveler</b>']),
+  M('Short story',['P'],['T','L','A','M'],'short','A complete fiction read in one sitting; compression as craft.','Short story',['Borges — <b>Ficciones</b>']),
+  M('Constrained novel',['P'],['T','L','Y','A','M'],'long','Fiction written under a strict formal rule that shapes everything.','Constrained writing',['Perec — <b>A Void</b>']),
+  M('Lyric essay',['P'],['L','A'],'long','Nonfiction that thinks in fragments and images, closer to poetry than argument.','Lyric essay',['Maggie Nelson — <b>Bluets</b>','Sebald — <b>The Rings of Saturn</b>']),
+  M('Book-length poem',['P'],['L','A'],'short','A single poetic work sustained to book length.','Long poem',['Anne Carson — <b>Nox</b>']),
+  M('Hypertext fiction',['P'],['S','L','A','M','E'],'long','Branching, linked narrative the reader navigates rather than reads straight.','Hypertext fiction',['Shelley Jackson — <b>Patchwork Girl</b>']),
+  M('Avant dish',['G','O','So'],['A'],'short','A single plate engineered to surprise the palate and the mind.','Molecular gastronomy',['Ferran Adrià — <b>spherical olive</b>, elBulli']),
+  M('Gustatory architecture',['G','O','So'],['S'],'short','Edible structures built at the scale of rooms and landscapes.','Bompas & Parr',['Bompas & Parr — architectural jelly']),
+  M('Tasting menu',['G','O','So'],['T','A'],'long','A sequenced procession of small courses composing one long arc.','Tasting menu',['Grant Achatz — <b>Alinea</b>','elBulli']),
+  M('Avant cocktail',['G','O','So'],['A'],'short','A drink designed as a conceptual, multisensory experience.','Cocktail',['Tony Conigliaro — <b>69 Colebrooke Row</b>']),
+  M('Perfume',['O'],['T','A'],'short','Composed scent that unfolds over time on the skin.','Perfume',['Comme des Garçons — <b>Odeur 53</b>']),
+  M('Tactile / relational object',['So'],['A','E'],'short','Things made to be handled, where the meaning lives in touch.','Lygia Clark',['Lygia Clark — <b>Bichos</b>, sensorial works']),
+  M('Multisensory dining',['G','O','So','P','Ac','Th'],['S','T','A','M'],'long','A meal staged with image, sound, and scent into total theater.','Molecular gastronomy',['Paul Pairet — <b>Ultraviolet</b>','Heston Blumenthal — <b>Sound of the Sea</b>']),
+  M('Tea ceremony',['G','O','So','P','K','Th'],['S','T','A','M','E'],'long','Ritual preparation where every gesture carries meaning.','Japanese tea ceremony',['Japanese <b>chanoyu</b>']),
+  M('Olfactory installation',['O'],['S','A'],'perpetual','A space defined by engineered smell.','Olfactory art',['Sissel Tolaas']),
+  M('Vestibular installation',['K','So'],['A','E'],'short','Slides and machines that make balance and motion the artwork.','Carsten Höller',['Carsten Höller — <b>Test Site</b> slides']),
+  M('Sauna / thermal bathing',['Th','So','P','K'],['S','T','A','E'],'long','Heat and cold worked over the whole body in sequence — temperature itself as the medium, and you the participant.','Sauna',['Finnish <b>sauna</b>','Russian <b>banya</b>','Japanese <b>onsen</b>']),
+  M('Ice & melt art',['Th','P'],['T','A'],'long','Cold made visible and temporary — form that exists only while it is melting.','Ice sculpture',['Olafur Eliasson — <b>Ice Watch</b>','Andy Goldsworthy — ice works']),
+  M('Contact improvisation',['So','K'],['T','A','E'],'short','Two bodies improvising through shared weight — felt more than watched.','Contact improvisation',['Steve Paxton']),
+  M('Choreography',['P','Ac','K'],['T','A','M'],'long','Designed human movement performed in space and time.','Choreography',['Pina Bausch — <b>Café Müller</b>','William Forsythe']),
+  M('Butoh',['P','K'],['T','A','M'],'short','Slow, extreme Japanese dance of inner states made visible.','Butoh',['Sankai Juku']),
+  M('Sign-language poetry',['P','K'],['T','L','A','M'],'short','Poetry composed in the moving hands and body of signed language.','ASL literature',['Clayton Valli — ASL poetry']),
+  M('Ballet',['P','Ac'],['S','T','A','M'],'long','Codified, virtuosic dance set to music and story.','Ballet',['Nijinsky / Stravinsky — <b>The Rite of Spring</b>']),
+  M('Mime',['P'],['T','A','M'],'short','Story and emotion conveyed by the silent, stylized body alone.','Mime artist',['Marcel Marceau']),
+  M('Performance art',['P','So','K'],['T','A','M'],'long','The artist\u2019s own body and presence as the medium, often endured live.','Performance art',['Marina Abramović — <b>The Artist Is Present</b>']),
+  M('Durational performance',['P'],['T','A','M'],'perpetual','A work lasting days or years — time as its true material.','Tehching Hsieh',['Tehching Hsieh — <b>One Year Performances</b>']),
+  M('Theme ride',['P','Ac','So','K'],['S','T','A','M'],'short','An engineered journey through staged space, story delivered by motion.','Dark ride',['Disney — <b>Haunted Mansion</b>']),
+  M('Theater (play)',['P','Ac'],['S','T','L','A','M'],'long','Live actors enacting a story in a shared room.','Theatre',['Beckett — <b>Waiting for Godot</b>']),
+  M('Opera',['P','Ac'],['S','T','L','A','M'],'long','Drama sung — music, voice, staging, and spectacle fused.','Opera',['Glass & Wilson — <b>Einstein on the Beach</b>']),
+  M('Musical',['P','Ac'],['S','T','L','A','M'],'long','Story told through book, song, and dance together.','Musical theatre',['<b>Hamilton</b>','Sondheim — <b>Sweeney Todd</b>']),
+  M('Puppetry',['P','Ac'],['S','T','L','A','M'],'long','Inanimate figures animated into living, feeling characters.','Puppetry',['Handspring — <b>War Horse</b>','Bunraku']),
+  M('Circus (nouveau)',['P','Ac','K'],['S','T','A','M'],'long','Acrobatic spectacle reframed as poetic, narrative performance.','Contemporary circus',['Compagnie XY']),
+  M('Magic / illusion',['P','Ac'],['T','A','M'],'short','Live performance built on the felt impossibility of what you just saw.','Magic (illusion)',['Derek DelGaudio — <b>In & Of Itself</b>']),
+  M('Improv theatre',['P','Ac'],['T','L','A','M','E'],'short','Theatre built live from audience suggestion — language and story conjured on the spot, never to recur.','Improvisational theatre',['Keith Johnstone — <b>Theatresports</b>','Upright Citizens Brigade']),
+  M('Stand-up (as art)',['Ac','P'],['T','L','A','M'],'short','Solo spoken performance shaped toward confession or argument.','Stand-up comedy',['Hannah Gadsby — <b>Nanette</b>']),
+  M('Fashion show',['P','Ac','So','K'],['S','T','A','M'],'short','Garments staged as theatrical spectacle in motion.','Fashion show',['Alexander McQueen — <b>VOSS</b>, <b>Plato\u2019s Atlantis</b>']),
+  M('Immersive theater',['P','Ac','So','K'],['S','T','L','A','M','E'],'long','Free-roam performance you move through and sometimes touch.','Immersive theater',['Punchdrunk — <b>Sleep No More</b>']),
+  M('Film',['P','Ac'],['T','L','A','M'],'long','Sound cinema — image, voice, music, and cut woven into story.','Film',['Tarkovsky — <b>Stalker</b>','Carax — <b>Holy Motors</b>','Kaufman — <b>Synecdoche, New York</b>']),
+  M('Animation',['P','Ac'],['T','L','A','M'],'long','Frame-by-frame imagined worlds, freed from what a camera can capture.','Animation',['Yuasa — <b>Mind Game</b>','Folman — <b>Waltz with Bashir</b>']),
+  M('Music video',['P','Ac'],['T','L','A','M'],'short','A song made visual — image and sound in tight short form.','Music video',['Michel Gondry','Peter Gabriel — <b>Sledgehammer</b>']),
+  M('Responsive installation',['P','Ac','So'],['S','A','E'],'perpetual','A room that watches and answers — your motion is the brush, and the work has no fixed state.','Interactive art',['Rafael Lozano-Hemmer — <b>Pulse Room</b>','Camille Utterback — <b>Text Rain</b>']),
+  M('Puzzle game',['P','Ac'],['S','T','Y','E'],'long','Interactive systems whose pleasure is the click of grasping a rule.','Puzzle video game',['<b>The Witness</b>','<b>Baba Is You</b>']),
+  M('Escape room',['P','So','K'],['S','T','Y','E'],'short','A physical space you solve as a team against the clock.','Escape room',['SCRAP — <b>Real Escape Game</b>']),
+  M('Video game',['P','Ac'],['S','T','L','A','M','E'],'long','Authored interactive worlds where your choices drive the story.','Video game',['<b>Disco Elysium</b>','<b>Outer Wilds</b>','<b>Kentucky Route Zero</b>']),
+  M('Walking-sim',['P','Ac'],['S','T','L','A','M','E'],'long','Story-led game where exploring a space, not winning, is the point.','Walking simulator',['<b>Gone Home</b>','<b>Dear Esther</b>']),
+  M('Interactive fiction',['P'],['T','L','A','M','E'],'long','Text-driven narrative steered by the reader\u2019s choices.','Interactive fiction',['inkle — <b>80 Days</b>','Adam Cadre — <b>Photopia</b>']),
+  M('Tabletop RPG',['P','Ac','So'],['S','T','L','Y','M','E'],'long','Collaborative storytelling built live from rules, dice, and imagination.','Tabletop role-playing game',['<b>Dungeons & Dragons</b>']),
+  M('VR experience',['P','Ac','K'],['S','T','A','M','E'],'long','Fully enclosing virtual space that surrounds and responds to you.','Virtual reality',['<b>Notes on Blindness: Into Darkness</b>']),
+  M('ARG',['P','Ac'],['T','L','Y','A','M','E'],'long','A fiction that spills into the real world across many media and players.','Alternate reality game',['<b>I Love Bees</b>']),
+  M('MMO / persistent world',['P','Ac'],['S','T','L','A','M','E'],'perpetual','A world that keeps running whether you log in or not — thousands of agents writing its history together.','Massively multiplayer online game',['<b>EVE Online</b>','<b>Second Life</b>','<b>World of Warcraft</b>']),
+  M('Generative art',['P'],['S','Y','A'],'perpetual','Work an algorithm composes anew, often endlessly, by rule.','Generative art',['Brian Eno — <b>77 Million Paintings</b>','Casey Reas']),
+  M('Demoscene',['P','Ac'],['S','Y','A'],'short','Realtime audiovisual works computed by hand-tuned code — the running program itself is the art.','Demoscene',['Future Crew — <b>Second Reality</b>','farbrausch — <b>fr-08</b>']),
+  M('Mixed immersive room',['P','Ac','So','K'],['S','T','A','E'],'perpetual','A room-scale environment of light, sound, and surface to wander.','Installation art',['teamLab — <b>Borderless</b>']),
+  M('Narrative immersive room',['P','Ac','So','K'],['S','T','L','A','M','E'],'perpetual','An explorable built world that hides a story in its rooms.','Meow Wolf',['Meow Wolf — <b>House of Eternal Return</b>']),
+  M('Religious ritual',['P','Ac','O','K','Th'],['S','T','L','Y','A','M','E'],'long','Total sensory ceremony binding a community to the sacred.','Ritual',['Catholic <b>High Mass</b>','Mevlevi <b>sema</b>']),
+  M('Festival',['P','Ac','So','K','O','Th'],['S','T','A','M','E'],'long','A large communal event of bodies, sound, and shared time.','Festival',['<b>Burning Man</b>','<b>Holi</b>']),
+  M('Theme park',['P','Ac','So','K','G','O'],['S','T','A','M','E'],'perpetual','A persistent built world engineered for continuous wonder.','Amusement park',['<b>Disneyland</b>']),
+];
+MEDIA.forEach((m,i)=>m._i=i);
+
+const state={ch:new Set(),op:new Set(),dur:null};
+const senseById=Object.fromEntries(SENSES.map(s=>[s.k,s]));
+const opById=Object.fromEntries(OPS.map(o=>[o.k,o]));
+
+const senseChips=document.getElementById('senseChips');
+SENSES.forEach(s=>{const c=document.createElement('div');c.className='chip';c.dataset.sense=s.k;c.tabIndex=0;
+  c.innerHTML=`${sIco(s.k)}${s.full}<span class="nm">${s.nm}</span>`;senseChips.appendChild(c);});
+const opChips=document.getElementById('opChips');
+OPS.forEach(o=>{const c=document.createElement('div');c.className='chip';c.dataset.op=o.k;c.tabIndex=0;
+  c.innerHTML=`${oIco(o.k)}${o.nm}`;opChips.appendChild(c);});
+
+const sensePlac=document.getElementById('sensePlac'),opPlac=document.getElementById('opPlac');
+const setSensePlac=k=>{const s=senseById[k];if(s)sensePlac.innerHTML=`<b>${s.full} <span class="pk">${s.k} · ${s.nm}</span></b> — ${SENSE_DESC[k]}`;};
+const setOpPlac=k=>{const o=opById[k];if(o)opPlac.innerHTML=`<b>${o.nm} <span class="pk">${o.k}</span></b> — ${OP_DESC[k]}`;};
+
+const penta=document.getElementById('penta');
+const PC={cx:220,cy:206,r:116,lr:150};
+const order=['S','T','E','M','A','L','Y'];
+const NOP=order.length;
+const pts=order.map((k,i)=>{const a=(-90+i*360/NOP)*Math.PI/180;
+  return{k,x:PC.cx+PC.r*Math.cos(a),y:PC.cy+PC.r*Math.sin(a),lx:PC.cx+PC.lr*Math.cos(a),ly:PC.cy+PC.lr*Math.sin(a)};});
+const ns='http://www.w3.org/2000/svg';
+function mk(t,at,html){const e=document.createElementNS(ns,t);for(const k in at)e.setAttribute(k,at[k]);if(html!=null)e.innerHTML=html;return e;}
+penta.appendChild(mk('path',{class:'grid',d:'M'+pts.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ')+' Z'}));
+const STAR_STEP=3; // {7/3} heptagram
+for(let i=0;i<NOP;i++){const a=pts[i],b=pts[(i+STAR_STEP)%NOP];penta.appendChild(mk('line',{class:'star',x1:a.x,y1:a.y,x2:b.x,y2:b.y}));}
+const shard=mk('path',{class:'shard',d:''});shard.style.opacity=0;penta.appendChild(shard);
+pts.forEach(p=>{
+  penta.appendChild(mk('circle',{class:'node','data-op':p.k,cx:p.x,cy:p.y,r:17,tabindex:0}));
+  const g=mk('g',{class:'picon-g','data-op':p.k,transform:`translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(.82)`});
+  g.appendChild(mk('g',{class:'picon'},OPICON[p.k]));penta.appendChild(g);
+  const full=OPS.find(o=>o.k===p.k).nm;
+  let anchor='middle';if(p.lx>PC.cx+6)anchor='start';else if(p.lx<PC.cx-6)anchor='end';
+  const dy=p.ly<PC.cy?-4:16;
+  const lbl=mk('text',{class:'vlabel','data-op':p.k,x:p.lx,y:p.ly+dy,'text-anchor':anchor});lbl.textContent=full;penta.appendChild(lbl);
+});
+
+(function(){const cx=40,cy=40,a=1.6,b=0.20;let d='';for(let i=0;i<=200;i++){const th=i*0.12;const r=a*Math.exp(b*th);
+  if(r>34)break;d+=(i===0?'M':'L')+(cx+r*Math.cos(th)).toFixed(2)+' '+(cy+r*Math.sin(th)).toFixed(2)+' ';}
+  document.getElementById('spiralPath').setAttribute('d',d);})();
+
+const tog=(s,k)=>{s.has(k)?s.delete(k):s.add(k);};
+document.querySelectorAll('.region').forEach(r=>{const k=r.dataset.sense;
+  const f=()=>{tog(state.ch,k);setSensePlac(k);render();};
+  r.addEventListener('click',f);
+  r.addEventListener('mouseenter',()=>setSensePlac(k));
+  r.addEventListener('focus',()=>setSensePlac(k));
+  r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});});
+senseChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.ch,c.dataset.sense);setSensePlac(c.dataset.sense);render();}});
+senseChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
+senseChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
+opChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.op,c.dataset.op);setOpPlac(c.dataset.op);render();}});
+opChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
+opChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
+penta.addEventListener('click',e=>{const n=e.target.closest('[data-op]');if(n){tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
+penta.addEventListener('mouseover',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
+penta.addEventListener('focusin',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
+penta.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
+document.getElementById('times').addEventListener('click',e=>{const t=e.target.closest('.tcell');if(t){state.dur=(state.dur===t.dataset.dur)?null:t.dataset.dur;render();}});
+
+/* ---- card selection: set the coordinate to the medium's profile (toggle off if already exact) ---- */
+function setEq(set,arr){if(set.size!==arr.length)return false;for(const x of arr)if(!set.has(x))return false;return true;}
+document.getElementById('out').addEventListener('click',e=>{
+  if(e.target.closest('.wikilink'))return;
+  const card=e.target.closest('.card');if(!card)return;
+  const m=MEDIA[+card.dataset.mi];
+  const isExact=setEq(state.ch,m.ch)&&setEq(state.op,m.op)&&state.dur===m.dur;
+  if(isExact){state.ch.clear();state.op.clear();state.dur=null;}
+  else{state.ch=new Set(m.ch);state.op=new Set(m.op);state.dur=m.dur;}
+  render();
+  document.querySelector('.coord').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+/* ---- wikipedia dark hovercard ---- */
+const wikicard=document.getElementById('wikicard');
+const wikiCache={};let hideTimer;
+function placeCard(rect){const w=wikicard.offsetWidth,h=wikicard.offsetHeight;
+  let left=rect.left,top=rect.bottom+8;
+  if(left+w>innerWidth-10)left=innerWidth-10-w; if(left<10)left=10;
+  if(top+h>innerHeight-10)top=rect.top-8-h; if(top<10)top=10;
+  wikicard.style.left=left+'px';wikicard.style.top=top+'px';}
+async function fetchWiki(title){
+  const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title)+'?redirect=true';
+  const r=await fetch(url);if(!r.ok)return null;const j=await r.json();
+  if(j.type&&j.type.indexOf('not_found')>-1)return null;
+  let ex=(j.extract||'').replace(/\s+/g,' ').trim();
+  if(ex.length>240){const cut=ex.slice(0,240);const d=cut.lastIndexOf('. ');ex=d>140?cut.slice(0,d+1):cut.trim()+'…';}
+  return{title:j.title,extract:ex,thumb:j.thumbnail?j.thumbnail.source:null,
+    orig:(j.originalimage&&j.originalimage.source)?j.originalimage.source:null,
+    url:(j.content_urls&&j.content_urls.desktop?j.content_urls.desktop.page:'https://en.wikipedia.org/wiki/'+encodeURIComponent(title))};
+}
+async function fetchWikiSearch(q){
+  const u='https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encodeURIComponent(q)+'&srlimit=1&format=json&origin=*';
+  const r=await fetch(u);if(!r.ok)return null;const j=await r.json();
+  const hits=j.query&&j.query.search;if(!hits||!hits.length)return null;
+  return await fetchWiki(hits[0].title);
+}
+function wikiKey(a){return a.dataset.wikisearch!=null?('q:'+a.dataset.wikisearch):('t:'+a.dataset.wiki);}
+async function showWiki(a){
+  const isSearch=a.dataset.wikisearch!=null,label=isSearch?a.dataset.wikisearch:a.dataset.wiki,key=wikiKey(a);
+  wikicard.dataset.for=key;
+  const rect=a.getBoundingClientRect();
+  wikicard.innerHTML=`<div class="wc-body"><div class="wc-load">Loading “${label}”…</div></div>`;
+  wikicard.classList.add('show');placeCard(rect);
+  let data=wikiCache[key];
+  if(data===undefined){try{data=isSearch?await fetchWikiSearch(label):await fetchWiki(label);}catch(e){data=null;}wikiCache[key]=data;}
+  if(wikicard.dataset.for!==key)return;
+  if(data&&data.url){a.href=data.url;}            // clicking now lands on the resolved article
+  if(!data||!data.extract){
+    wikicard.innerHTML=`<div class="wc-body"><p class="wc-eyebrow">Wikipedia</p><h4 class="wc-title">${label}</h4><p class="wc-extract">Preview couldn\u2019t load here — the article still opens fine.</p><div class="wc-foot"><a href="${a.href}" target="_blank" rel="noopener">Open on Wikipedia ↗</a></div></div>`;
+  }else{
+    const src=data.thumb||data.orig;
+    const hero=src
+      ?`<a class="wc-imgwrap" href="${data.url}" target="_blank" rel="noopener"><img class="wc-img" src="${src}" alt=""><h4 class="wc-title">${data.title}</h4></a>`
+      :`<div class="wc-body" style="padding-bottom:0"><p class="wc-eyebrow">Wikipedia</p><h4 class="wc-title">${data.title}</h4></div>`;
+    wikicard.innerHTML=`${hero}<div class="wc-body"><p class="wc-extract">${data.extract}</p><div class="wc-foot"><a href="${data.url}" target="_blank" rel="noopener">Read on Wikipedia ↗</a></div></div>`;
+  }
+  placeCard(rect);
+}
+const cancelHide=()=>clearTimeout(hideTimer);
+const scheduleHide=()=>{hideTimer=setTimeout(()=>{wikicard.classList.remove('show');wikicard.dataset.for='';},200);};
+wikicard.addEventListener('mouseenter',cancelHide);
+wikicard.addEventListener('mouseleave',scheduleHide);
+document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a){cancelHide();showWiki(a);}});
+document.addEventListener('mouseout',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a)scheduleHide();});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a){wikicard.classList.remove('show');wikicard.dataset.for='';}},true); // let the link open Wikipedia in a new tab
+addEventListener('scroll',()=>{if(wikicard.classList.contains('show')){wikicard.classList.remove('show');wikicard.dataset.for='';}},true);
+
+/* ---- matching + render ---- */
+function symdiff(a,setB){let d=0;const A=new Set(a);A.forEach(x=>{if(!setB.has(x))d++;});setB.forEach(x=>{if(!A.has(x))d++;});return d;}
+function score(m){const cd=symdiff(m.ch,state.ch),od=symdiff(m.op,state.op),dd=state.dur?(m.dur===state.dur?0:1):0;
+  return{dist:cd+od+dd,exact:cd===0&&od===0&&(state.dur?m.dur===state.dur:true)};}
+
+function escAttr(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
+function itemQuery(label){return label.replace(/<[^>]+>/g,'').replace(/\([^)]*\)/g,'').replace(/[\u2014\u2013-]/g,' ').replace(/\s+/g,' ').trim();}
+function cardHTML(m,exact){
+  const senseB=m.ch.map(k=>`<span class="pb"><i style="background:${SENSE_HUE[k]}"></i>${k}</span>`).join('');
+  const opB=m.op.length?`<span class="pb op">${m.op.join(' ')}</span>`:`<span class="pb none">∅ op</span>`;
+  const durB=`<span class="pb dur">${DURNAME[m.dur]}</span>`;
+  const link=`<a class="wikilink" data-wiki="${m.wiki.replace(/"/g,'&quot;')}" href="https://en.wikipedia.org/wiki/${encodeURIComponent(m.wiki.replace(/ /g,'_'))}" target="_blank" rel="noopener">${m.name}</a>`;
+  const items=m.items.map(it=>{const q=itemQuery(it);
+    return `<li><a class="wikilink" data-wikisearch="${escAttr(q)}" href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}" target="_blank" rel="noopener">${it}</a></li>`;}).join('');
+  return `<article class="card${exact?' exact':''}" data-mi="${m._i}"><h3>${link}${exact?'<span class="tag">exact cell</span>':''}</h3>
+    <p class="blurb">${m.blurb}</p>
+    <div class="profile">${senseB}${opB}${durB}</div>
+    <ul class="items">${items}</ul></article>`;
+}
+
+function render(){
+  document.querySelectorAll('.region').forEach(r=>r.classList.toggle('on',state.ch.has(r.dataset.sense)));
+  document.querySelectorAll('#senseChips .chip').forEach(c=>c.classList.toggle('on',state.ch.has(c.dataset.sense)));
+  document.querySelectorAll('#opChips .chip').forEach(c=>c.classList.toggle('on',state.op.has(c.dataset.op)));
+  penta.querySelectorAll('.node,.vlabel,.picon-g').forEach(n=>n.classList.toggle('on',state.op.has(n.dataset.op)));
+  const active=pts.filter(p=>state.op.has(p.k));
+  if(active.length>=2){shard.setAttribute('d','M'+active.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ')+(active.length>=3?' Z':''));
+    shard.style.opacity=1;shard.style.fill=active.length>=3?'':'none';}else shard.style.opacity=0;
+  document.querySelectorAll('.tcell').forEach(t=>t.classList.toggle('on',state.dur===t.dataset.dur));
+
+  document.getElementById('cSenses').textContent=state.ch.size?SENSES.filter(s=>state.ch.has(s.k)).map(s=>s.k).join(' · '):'∅';
+  document.getElementById('cOps').textContent=state.op.size?OPS.filter(o=>state.op.has(o.k)).map(o=>o.k).join(' '):'∅';
+  document.getElementById('cDur').textContent=state.dur?DURNAME[state.dur]:'any';
+
+  const out=document.getElementById('out'),verdict=document.getElementById('verdict');
+  const nothing=state.ch.size===0&&state.op.size===0&&!state.dur;
+  if(nothing){
+    verdict.innerHTML='<span class="hint">Tap a card to jump to its coordinate; hover or tap a title for a Wikipedia preview.</span>';
+    const qual=MEDIA.filter(m=>m.op.length===0);
+    out.innerHTML=`<div class="empty"><b>Nothing is firing.</b> This is the <span class="glyph-O">∅</span> cell — raw sensation before the mind gives it shape. Open a sense on the mask, or start from the media that come closest to pure qualia:</div>
+      <p class="subhead">Closest to raw sensation</p>
+      <div class="grid-cards">${qual.map(m=>cardHTML(m,false)).join('')}</div>`;
+    return;
+  }
+  const ranked=MEDIA.map(m=>({m,...score(m)})).sort((a,b)=>a.dist-b.dist||a.m.name.localeCompare(b.m.name));
+  const anyExact=ranked.some(r=>r.exact);
+  verdict.innerHTML=(anyExact?'Media that live exactly at this coordinate, then the nearest neighbors. '
+    :'<span class="ground">No named medium sits exactly here — open ground, buildable.</span> The closest occupants: ')
+    +'<span class="hint">Tap a card to jump to its coordinate; hover a title or any recommendation for a Wikipedia preview.</span>';
+  out.innerHTML=`<div class="grid-cards">${ranked.slice(0,10).map(r=>cardHTML(r.m,r.exact)).join('')}</div>`;
+}
+render();
+</script>
+</body>
+</html>
