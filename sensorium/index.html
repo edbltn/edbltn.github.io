@@ -9,7 +9,12 @@
 <meta property="og:description" content="Every medium is a chord. Switch on senses and operations and read off what lives at that coordinate.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.ericdidierbolton.com/sensorium/">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://www.ericdidierbolton.com/sensorium/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Sensorium mask — a face whose senses light up as a chord.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.ericdidierbolton.com/sensorium/og.png">
 <link rel="icon" type="image/png" href="../me.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,8 +44,19 @@
   .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--bone-faint);margin:0 0 10px;}
   h1{font-family:var(--serif);font-weight:500;font-size:clamp(48px,12vw,96px);line-height:.92;margin:0;letter-spacing:-.01em;
     background:linear-gradient(180deg,var(--bone) 0%, #c9b9d8 120%);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .lead{font-size:clamp(16px,2.4vw,19px);color:var(--bone-dim);max-width:60ch;margin:16px 0 0;}
-  .lead em{color:var(--bone);font-style:italic;}
+  .lead{font-size:clamp(16px,2.4vw,19px);color:var(--bone-dim);max-width:62ch;margin:16px 0 0;}
+  .lead em{color:var(--bone);font-style:italic;} .lead b{color:var(--bone);font-weight:500;}
+  .howto{font-family:var(--sans);font-size:13.5px;line-height:1.6;color:var(--bone-faint);max-width:64ch;margin:14px 0 0;
+    border-left:2px solid var(--line);padding-left:13px;}
+  .howto b{color:var(--bone-dim);font-weight:600;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 2px;}
+  .btn{font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:.02em;cursor:pointer;
+    padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+    color:var(--bone-dim);transition:.22s;}
+  .btn:hover{color:var(--bone);border-color:var(--bone-faint);transform:translateY(-1px);}
+  .btn:active{transform:none;}
+  .btn-rand{border-color:color-mix(in srgb,var(--gold) 42%,var(--line));color:var(--gold);}
+  .btn-rand:hover{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);color:var(--gold);}
   .coord{margin:26px 0 8px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;
     background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.12));
     font-family:var(--mono);font-size:clamp(13px,3.6vw,17px);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
@@ -48,9 +64,12 @@
   .coord .k{color:var(--bone-faint);font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
   .coord .v{color:var(--bone);} .coord .sep{color:var(--bone-faint);}
 
-  .instruments{display:grid;grid-template-columns:1fr;gap:34px;margin-top:34px;}
-  @media(min-width:840px){.instruments{grid-template-columns:1fr 1fr;align-items:start;}.panel-time{grid-column:1 / -1;}}
-  .panel h2{font-family:var(--serif);font-weight:500;font-size:24px;margin:0 0 2px;}
+  .instruments{display:flex;flex-direction:column;gap:30px;margin-top:34px;max-width:640px;margin-left:auto;margin-right:auto;}
+  .panel{border:1px solid var(--line);border-radius:16px;padding:22px 22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.014),rgba(0,0,0,.08));}
+  .panel h2{font-family:var(--serif);font-weight:500;font-size:24px;margin:0 0 2px;display:flex;align-items:center;gap:12px;}
+  .stepn{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--bone-faint);
+    display:inline-flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:14px;font-weight:600;
+    color:var(--bone-dim);background:rgba(255,255,255,.02);}
   .panel .sub{font-family:var(--sans);font-size:12.5px;color:var(--bone-faint);margin:0 0 16px;}
   .placard{font-family:var(--body);font-size:14.5px;color:var(--bone-dim);margin:14px 2px 0;line-height:1.45;
     border-top:1px solid var(--line);padding-top:13px;min-height:4.2em;transition:color .2s;}
@@ -193,7 +212,8 @@
   <header>
     <p class="eyebrow">A combinatorial atlas of media</p>
     <h1>Sensorium</h1>
-    <p class="lead">Every medium is a chord. <em>Which senses carry it, which operations the mind runs on it, and how it sits in time.</em> Switch them on and read off what lives at that coordinate.</p>
+    <p class="lead">Every medium is a <em>chord</em> of three things: the <b>senses</b> that carry it in, the <b>operations</b> your mind runs on it, and how it sits in <b>time</b>. Pick a combination and the lattice shows you which real media live there — and when a cell is empty, what <em>could</em>.</p>
+    <p class="howto">Work through the three steps below — tap senses on the face, operations on the star, a grain of time. Anything you leave blank stays open. The answer builds at the bottom as you go. Hit <b>Randomize</b> for a coordinate you'd never think to try.</p>
     <div class="coord" aria-live="polite">
       <span class="seg"><span class="k">Senses</span><span class="v" id="cSenses">∅</span></span>
       <span class="sep">/</span>
@@ -201,12 +221,16 @@
       <span class="sep">/</span>
       <span class="seg"><span class="k">Time</span><span class="v" id="cDur">any</span></span>
     </div>
+    <div class="controls">
+      <button type="button" class="btn btn-rand" id="btnRandom">⤮ Randomize</button>
+      <button type="button" class="btn btn-clear" id="btnClear">✕ Clear</button>
+    </div>
   </header>
 
   <div class="instruments">
 
     <section class="panel">
-      <h2>The senses</h2>
+      <h2><span class="stepn">1</span>The senses</h2>
       <p class="sub">The channels that carry a medium in. Tap a feature to open one.</p>
       <div class="stage">
         <svg class="mask" viewBox="0 0 400 560" role="group" aria-label="Sensory mask">
@@ -270,7 +294,7 @@
     </section>
 
     <section class="panel">
-      <h2>The operations</h2>
+      <h2><span class="stepn">2</span>The operations</h2>
       <p class="sub">What the mind does with the signal once it is in. Tap a point of the star.</p>
       <div class="stage"><svg class="penta" id="penta" viewBox="0 0 440 400" role="group" aria-label="Operations star"></svg></div>
       <div class="chips" id="opChips"></div>
@@ -278,8 +302,8 @@
     </section>
 
     <section class="panel panel-time">
-      <h2>The grain of time</h2>
-      <p class="sub">How it occupies duration. Tap to set; tap again for any.</p>
+      <h2><span class="stepn">3</span>The grain of time</h2>
+      <p class="sub">How it occupies duration. Optional — tap to set, tap again for any.</p>
       <div class="times" id="times">
         <div class="tcell" data-dur="static" tabindex="0">
           <svg class="tglyph" viewBox="0 0 80 80"><circle class="ink" cx="40" cy="40" r="13"/><circle class="ink" cx="40" cy="40" r="24" style="opacity:.25"/><circle class="dot" cx="40" cy="40" r="4.5"/></svg>
@@ -537,23 +561,50 @@ pts.forEach(p=>{
   document.getElementById('spiralPath').setAttribute('d',d);})();
 
 const tog=(s,k)=>{s.has(k)?s.delete(k):s.add(k);};
+
+/* ---- guided flow: once you act in a step, bring the next one into view ---- */
+const PANELS=[...document.querySelectorAll('.instruments .panel')]; // [senses, operations, time]
+const resultsSec=document.querySelector('.results');
+function revealNext(i){
+  const target = i<PANELS.length-1 ? PANELS[i+1] : resultsSec;
+  if(!target) return;
+  const r=target.getBoundingClientRect();
+  if(r.top > innerHeight*0.8) target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 document.querySelectorAll('.region').forEach(r=>{const k=r.dataset.sense;
-  const f=()=>{tog(state.ch,k);setSensePlac(k);render();};
+  const f=()=>{tog(state.ch,k);setSensePlac(k);render();revealNext(0);};
   r.addEventListener('click',f);
   r.addEventListener('mouseenter',()=>setSensePlac(k));
   r.addEventListener('focus',()=>setSensePlac(k));
   r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});});
-senseChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.ch,c.dataset.sense);setSensePlac(c.dataset.sense);render();}});
+senseChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.ch,c.dataset.sense);setSensePlac(c.dataset.sense);render();revealNext(0);}});
 senseChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
 senseChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setSensePlac(c.dataset.sense);});
-opChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.op,c.dataset.op);setOpPlac(c.dataset.op);render();}});
+opChips.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){tog(state.op,c.dataset.op);setOpPlac(c.dataset.op);render();revealNext(1);}});
 opChips.addEventListener('mouseover',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
 opChips.addEventListener('focusin',e=>{const c=e.target.closest('.chip');if(c)setOpPlac(c.dataset.op);});
-penta.addEventListener('click',e=>{const n=e.target.closest('[data-op]');if(n){tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
+penta.addEventListener('click',e=>{const n=e.target.closest('[data-op]');if(n){tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();revealNext(1);}});
 penta.addEventListener('mouseover',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
 penta.addEventListener('focusin',e=>{const n=e.target.closest('[data-op]');if(n)setOpPlac(n.dataset.op);});
-penta.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();}});
-document.getElementById('times').addEventListener('click',e=>{const t=e.target.closest('.tcell');if(t){state.dur=(state.dur===t.dataset.dur)?null:t.dataset.dur;render();}});
+penta.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tog(state.op,n.dataset.op);setOpPlac(n.dataset.op);render();revealNext(1);}});
+document.getElementById('times').addEventListener('click',e=>{const t=e.target.closest('.tcell');if(t){state.dur=(state.dur===t.dataset.dur)?null:t.dataset.dur;render();revealNext(2);}});
+
+/* ---- randomize / clear ---- */
+function pickN(keys,min,max){const pool=[...keys],out=[];const n=min+Math.floor(Math.random()*(max-min+1));
+  while(out.length<n&&pool.length)out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return out;}
+const ALLDUR=['static','short','long','perpetual'];
+document.getElementById('btnRandom').addEventListener('click',()=>{
+  state.ch=new Set(pickN(SENSES.map(s=>s.k),1,3));   // always ≥1 sense so a real cell resolves
+  state.op=new Set(pickN(OPS.map(o=>o.k),0,3));
+  state.dur=Math.random()<0.72?ALLDUR[Math.floor(Math.random()*4)]:null;
+  render();
+  resultsSec.scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('btnClear').addEventListener('click',()=>{
+  state.ch.clear();state.op.clear();state.dur=null;render();
+  scrollTo({top:0,behavior:'smooth'});
+});
 
 /* ---- card selection: set the coordinate to the medium's profile (toggle off if already exact) ---- */
 function setEq(set,arr){if(set.size!==arr.length)return false;for(const x of arr)if(!set.has(x))return false;return true;}
@@ -682,18 +733,24 @@ function render(){
     +'<span class="hint">Tap a card to jump to its coordinate; hover a title or any recommendation for a Wikipedia preview.</span>';
   // open-ground panel: a concrete empty coordinate gets an "invent one" prompt + AI-seeded idea
   let openHTML='';
-  if(!anyExact && state.ch.size>0){
-    loadCells();
-    const lookDur = state.dur || 'short'; // no time chosen → default to the "short" idea for this chord
-    let idea = CELLS ? CELLS[comboId(lookDur)] : undefined;
-    if(CELLS && !idea){ // graceful fallback so a concrete cell never reads blank
-      const sn=SENSES.filter(x=>state.ch.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ');
-      const on=OPS.filter(x=>state.op.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ')||'raw sensation';
-      idea=`Something ${lookDur} that reaches you through ${sn}, worked as ${on}.`;
+  if(!anyExact && (state.ch.size>0 || state.op.size>0 || state.dur)){
+    const senseless = state.ch.size===0; // an operation/time with no sensory channel to carry it
+    let idea;
+    if(!senseless){
+      loadCells();
+      const lookDur = state.dur || 'short'; // no time chosen → default to the "short" idea for this chord
+      idea = CELLS ? CELLS[comboId(lookDur)] : undefined;
+      if(CELLS && !idea){ // graceful fallback so a concrete cell never reads blank
+        const sn=SENSES.filter(x=>state.ch.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ');
+        const on=OPS.filter(x=>state.op.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ')||'raw sensation';
+        idea=`Something ${lookDur} that reaches you through ${sn}, worked as ${on}.`;
+      }
     }
     openHTML=`<div class="openground"><p class="og-tag">✕ Open ground</p>`+
-      `<p class="og-lead">No named medium lives at this exact coordinate.${idea?' A lightning idea for what could:':' It is yours to invent.'}</p>`+
-      (idea?`<p class="og-idea">“${idea}”</p>`:'')+
+      (senseless
+        ? `<p class="og-lead">Every medium needs a way <em>in</em>. You've chosen ${state.op.size?'an operation':'a grain of time'} but no <b>sense</b> to carry it — open at least one channel on the face above, and the idea for this coordinate will appear.</p>`
+        : `<p class="og-lead">No named medium lives at this exact coordinate.${idea?' A lightning idea for what could:':' It is yours to invent.'}</p>`
+          + (idea?`<p class="og-idea">“${idea}”</p>`:''))+
       `<p class="og-foot">One of ~64,900 empty cells in the lattice — most of the space is still open ground.</p></div>`;
   }
   out.innerHTML=openHTML+`<div class="grid-cards">${ranked.slice(0,10).map(r=>cardHTML(r.m,r.exact)).join('')}</div>`;
