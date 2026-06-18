@@ -159,6 +159,15 @@
   .results h2{font-family:var(--serif);font-weight:500;font-size:26px;margin:0 0 4px;}
   .verdict{font-family:var(--sans);font-size:13px;color:var(--bone-dim);margin:0 0 22px;line-height:1.5;}
   .verdict .ground{color:var(--gold);} .verdict .hint{color:var(--bone-faint);}
+  .selsummary{font-family:var(--mono);font-size:13px;color:var(--bone-dim);margin:0 0 12px;line-height:1.7;
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;}
+  .selsummary .lab{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-faint);margin-right:5px;}
+  .selsummary .seg{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .selsummary .pill{padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--bone);font-size:12px;display:inline-flex;align-items:center;gap:6px;}
+  .selsummary .pill i{width:7px;height:7px;border-radius:50%;display:inline-block;font-style:normal;}
+  .selsummary .pill.op{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 30%,var(--line));}
+  .selsummary .pill.dur{color:var(--time);border-color:color-mix(in srgb,var(--time) 28%,var(--line));}
+  .selsummary .none{color:var(--bone-faint);font-style:italic;}
   .grid-cards{display:grid;grid-template-columns:1fr;gap:14px;}
   @media(min-width:680px){.grid-cards{grid-template-columns:1fr 1fr;}}
   .card{border:1px solid var(--line);border-radius:14px;padding:16px 17px;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.10));transition:.25s;cursor:pointer;}
@@ -338,6 +347,7 @@
 
   <section class="results">
     <h2>The lattice answers</h2>
+    <p class="selsummary" id="selSummary" aria-live="polite"></p>
     <p class="verdict" id="verdict"></p>
     <div id="out"></div>
   </section>
@@ -728,6 +738,19 @@ function render(){
   document.getElementById('cSenses').textContent=state.ch.size?SENSES.filter(s=>state.ch.has(s.k)).map(s=>s.k).join(' · '):'∅';
   document.getElementById('cOps').textContent=state.op.size?OPS.filter(o=>state.op.has(o.k)).map(o=>o.k).join(' '):'∅';
   document.getElementById('cDur').textContent=state.dur?DURNAME[state.dur]:'any';
+
+  // readable summary of the current coordinate, restated above the answer
+  const sPills=state.ch.size
+    ? SENSES.filter(s=>state.ch.has(s.k)).map(s=>`<span class="pill"><i style="background:${SENSE_HUE[s.k]}"></i>${s.full}</span>`).join('')
+    : '<span class="none">none yet</span>';
+  const oPills=state.op.size
+    ? OPS.filter(o=>state.op.has(o.k)).map(o=>`<span class="pill op">${o.nm}</span>`).join('')
+    : '<span class="none">none (∅)</span>';
+  const dPill=state.dur?`<span class="pill dur">${DURNAME[state.dur]}</span>`:'<span class="none">any</span>';
+  document.getElementById('selSummary').innerHTML=
+    `<span class="seg"><span class="lab">Senses</span>${sPills}</span>`+
+    `<span class="seg"><span class="lab">Operations</span>${oPills}</span>`+
+    `<span class="seg"><span class="lab">Time</span>${dPill}</span>`;
 
   const out=document.getElementById('out'),verdict=document.getElementById('verdict');
   const nothing=state.ch.size===0&&state.op.size===0&&!state.dur;
