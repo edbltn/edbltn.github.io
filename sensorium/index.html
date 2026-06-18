@@ -486,10 +486,10 @@ const state={ch:new Set(),op:new Set(),dur:null};
 
 /* open-ground suggestions for empty coordinates (lazy-loaded; ~5MB, gzipped ~1MB) */
 let CELLS=null, cellsLoading=false;
-function comboId(){
+function comboId(dur){
   const s=SENSES.filter(x=>state.ch.has(x.k)).map(x=>x.k).join('+')||'-';
   const o=OPS.filter(x=>state.op.has(x.k)).map(x=>x.k).join('+')||'-';
-  return `${s}|${o}|${state.dur}`;
+  return `${s}|${o}|${dur||state.dur}`;
 }
 function loadCells(){
   if(CELLS!==null||cellsLoading) return;
@@ -682,13 +682,14 @@ function render(){
     +'<span class="hint">Tap a card to jump to its coordinate; hover a title or any recommendation for a Wikipedia preview.</span>';
   // open-ground panel: a concrete empty coordinate gets an "invent one" prompt + AI-seeded idea
   let openHTML='';
-  if(!anyExact && state.ch.size>0 && state.dur){
+  if(!anyExact && state.ch.size>0){
     loadCells();
-    let idea = CELLS ? CELLS[comboId()] : undefined;
+    const lookDur = state.dur || 'short'; // no time chosen → default to the "short" idea for this chord
+    let idea = CELLS ? CELLS[comboId(lookDur)] : undefined;
     if(CELLS && !idea){ // graceful fallback so a concrete cell never reads blank
       const sn=SENSES.filter(x=>state.ch.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ');
       const on=OPS.filter(x=>state.op.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ')||'raw sensation';
-      idea=`Something ${state.dur} that reaches you through ${sn}, worked as ${on}.`;
+      idea=`Something ${lookDur} that reaches you through ${sn}, worked as ${on}.`;
     }
     openHTML=`<div class="openground"><p class="og-tag">✕ Open ground</p>`+
       `<p class="og-lead">No named medium lives at this exact coordinate.${idea?' A lightning idea for what could:':' It is yours to invent.'}</p>`+
