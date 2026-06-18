@@ -684,11 +684,16 @@ function render(){
   let openHTML='';
   if(!anyExact && state.ch.size>0 && state.dur){
     loadCells();
-    const idea = CELLS ? CELLS[comboId()] : undefined;
+    let idea = CELLS ? CELLS[comboId()] : undefined;
+    if(CELLS && !idea){ // graceful fallback so a concrete cell never reads blank
+      const sn=SENSES.filter(x=>state.ch.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ');
+      const on=OPS.filter(x=>state.op.has(x.k)).map(x=>x.nm.toLowerCase()).join(' + ')||'raw sensation';
+      idea=`Something ${state.dur} that reaches you through ${sn}, worked as ${on}.`;
+    }
     openHTML=`<div class="openground"><p class="og-tag">✕ Open ground</p>`+
-      `<p class="og-lead">No named medium lives at this exact coordinate. ${idea?'A lightning idea for what could:':'It is yours to invent.'}</p>`+
+      `<p class="og-lead">No named medium lives at this exact coordinate.${idea?' A lightning idea for what could:':' It is yours to invent.'}</p>`+
       (idea?`<p class="og-idea">“${idea}”</p>`:'')+
-      `<p class="og-foot">One of ~62,000 empty cells in the lattice — most of the space is still open.</p></div>`;
+      `<p class="og-foot">One of ~64,900 empty cells in the lattice — most of the space is still open ground.</p></div>`;
   }
   out.innerHTML=openHTML+`<div class="grid-cards">${ranked.slice(0,10).map(r=>cardHTML(r.m,r.exact)).join('')}</div>`;
 }
