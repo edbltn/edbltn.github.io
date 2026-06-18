@@ -218,8 +218,8 @@
           <g class="region" data-sense="Th" tabindex="0" aria-label="Temperature">
             <rect class="hit" x="104" y="214" width="42" height="40"/>
             <rect class="hit" x="254" y="214" width="42" height="40"/>
-            <path d="M125 250 C119 244 117 236 119 224 C123 230 125 234 125 240 C125 234 127 230 131 222 C133 236 131 244 125 250 Z"/>
-            <path d="M275 250 C281 244 283 236 281 224 C277 230 275 234 275 240 C275 234 273 230 269 222 C267 236 269 244 275 250 Z"/>
+            <path class="open" style="stroke-width:5" d="M125 220 q7 5 0 10 q-7 5 0 10 q7 5 0 10"/>
+            <path class="open" style="stroke-width:5" d="M275 220 q-7 5 0 10 q7 5 0 10 q-7 5 0 10"/>
           </g>
 
           <!-- Olfactory: nose (single outer silhouette) -->
@@ -367,12 +367,12 @@ const MEDIA=[
   M('Color field (Ganzfeld)',['P'],[],'perpetual','Vision flooded with even light until depth and edge dissolve and you notice seeing itself.','Ganzfeld effect',['James Turrell — <b>Ganzfeld</b> works']),
   M('Single-molecule scent',['O'],[],'static','One synthesized aroma worn alone — smell pared down to a single clean note.','Aroma compound',['Escentric Molecules — <b>Molecule 01</b>']),
   M('Pure rhythm',['Ac'],['T'],'short','Pulse without pitch or words — time made audible through sheer recurrence.','Rhythm',['Ligeti — <b>Poème Symphonique</b> (100 metronomes)','Steve Reich — <b>Clapping Music</b>']),
-  M('Flicker film',['P'],['T'],'short','Alternating black and white frames that act on the retina directly, bypassing image.','Flicker film',['Tony Conrad — <b>The Flicker</b>']),
+  M('Flicker film',['P'],['T'],'short','Alternating black and white frames that act on the retina directly, bypassing image.','The Flicker',['Tony Conrad — <b>The Flicker</b>']),
   M('Statement / sign',['P'],['L'],'static','Cold declarative language shown as the work itself — meaning without ornament.','Conceptual art',['Lawrence Weiner','On Kawara — <b>Today Series</b>']),
   M('Kinetic sculpture',['P'],['S','T'],'perpetual','Forms that move, drawing shapes in space across time.','Kinetic art',['Calder — mobiles','Theo Jansen — <b>Strandbeest</b>']),
-  M('Labyrinth',['P','K'],['S'],'perpetual','A path you walk rather than view, folding space into one contemplative route.','Labyrinth',['Chartres Cathedral labyrinth','Robert Morris']),
+  M('Labyrinth',['P','K'],['S'],'perpetual','A path you walk rather than view, folding space into one contemplative route.','Labyrinth',['Chartres Cathedral labyrinth','Robert Morris@@Robert Morris (artist)']),
   M('Hedge maze',['P','K'],['S','E'],'short','A branching puzzle of walls you solve with your feet — wrong turns, dead ends, and the slow building of a mental map.','Maze',['Hampton Court Maze','Longleat hedge maze']),
-  M('Hyperreal figure',['P','So'],['M'],'static','A sculpted human so lifelike its mere presence unsettles.','Hyperrealism (sculpture)',['Ron Mueck','Duane Hanson']),
+  M('Hyperreal figure',['P','So'],['M'],'static','A sculpted human so lifelike its mere presence unsettles.','Hyperrealism (visual arts)',['Ron Mueck','Duane Hanson']),
   M('Portrait (the gaze)',['P'],['M'],'static','A face rendered to hold your eye and return it — presence distilled to a look.','Portrait',['Fayum mummy portraits','Chuck Close']),
   M('Painting (abstract)',['P'],['A'],'static','Color, form, and gesture organized for direct feeling, with nothing to depict.','Abstract art',['Hilma af Klint — <b>The Ten Largest</b> (1907)']),
   M('Painting (figural)',['P'],['A','M'],'static','An image of people, places, or scenes — the world re-presented on a surface.','Figurative art',['Bosch — <b>The Garden of Earthly Delights</b>']),
@@ -383,7 +383,7 @@ const MEDIA=[
   M('Aphorism / fragment',['P'],['L','A'],'static','Compressed text that detonates a whole thought in a sentence or two.','Aphorism',['Wittgenstein — <b>Tractatus</b>']),
   M('Diagram / data portrait',['P'],['S','Y'],'static','Information given spatial form so a pattern can be seen at a glance.','Infographic',['W. E. B. Du Bois — <b>data portraits</b> (1900)']),
   M('Graphic score',['P'],['S','Y','A'],'static','Music written as image — notation freed from the stave into pure visual instruction.','Graphic notation (music)',['Cornelius Cardew — <b>Treatise</b>','Cathy Berberian — <b>Stripsody</b>']),
-  M('Cryptic crossword',['P'],['L','Y','E'],'short','A lattice of clued wordplay you fill in by hand — language treated as a solvable machine.','Crossword',['<b>The Times</b> cryptic','Araucaria (John Graham)']),
+  M('Cryptic crossword',['P'],['L','Y','E'],'short','A lattice of clued wordplay you fill in by hand — language treated as a solvable machine.','Crossword',['<b>The Times</b> cryptic','Araucaria (John Graham)@@John Galbraith Graham']),
   M('Text-light',['P'],['L','A'],'perpetual','Words rendered in glowing signage — language as public, ambient object.','Neon art',['Bruce Nauman','Jenny Holzer — <b>Truisms</b>']),
   M('Sculpture',['P','So'],['S','A'],'static','Mass and surface in three dimensions, meant to be circled by the eye.','Sculpture',['Louise Bourgeois — <b>Maman</b>','Richard Serra']),
   M('Textile / fiber',['P','So'],['A'],'static','Woven, knotted, or stitched material raised to the level of art.','Fiber art',['Sheila Hicks','Anni Albers']),
@@ -411,7 +411,7 @@ const MEDIA=[
   M('Audiobook',['Ac'],['T','L','M'],'long','A book delivered by a single reading voice — text re-channelled through the ear.','Audiobook',['Toni Morrison reads <b>Beloved</b>','LeVar Burton']),
   M('Radio drama',['Ac'],['T','L','A','M'],'long','Story told through voice, sound, and silence for the ear alone.','Radio drama',['Orson Welles — <b>The War of the Worlds</b>']),
   M('Podcast (narrative)',['Ac'],['T','L','M'],'long','Serialized audio storytelling — intimate and voice-led.','Podcast',['<b>S-Town</b>']),
-  M('Field recording',['Ac'],['A'],'long','The captured sound of a place, presented as the work itself.','Field recording',['Chris Watson — <b>Weather Report</b>']),
+  M('Field recording',['Ac'],['A'],'long','The captured sound of a place, presented as the work itself.','Field recording',['Chris Watson — <b>Weather Report</b>@@Chris Watson (musician)']),
   M('Spatial / multichannel sound',['Ac'],['S','A'],'perpetual','Sound distributed through space so you move within it.','Sound installation',['Janet Cardiff — <b>The Forty Part Motet</b>','Max Neuhaus — <b>Times Square</b>']),
   M('Audio walk',['Ac','K'],['S','T','L','A'],'short','A recorded voice guiding your body through a real place in real time.','Soundwalk',['Cardiff & Miller — <b>Her Long Black Hair</b>']),
   M('Novel',['P'],['T','L','A','M'],'long','Extended prose fiction — a whole world built over hundreds of pages.','Novel',['Danielewski — <b>House of Leaves</b>','Nabokov — <b>Pale Fire</b>','Calvino — <b>If on a winter\u2019s night a traveler</b>']),
@@ -423,7 +423,7 @@ const MEDIA=[
   M('Avant dish',['G','O','So'],['A'],'short','A single plate engineered to surprise the palate and the mind.','Molecular gastronomy',['Ferran Adrià — <b>spherical olive</b>, elBulli']),
   M('Gustatory architecture',['G','O','So'],['S'],'short','Edible structures built at the scale of rooms and landscapes.','Bompas & Parr',['Bompas & Parr — architectural jelly']),
   M('Tasting menu',['G','O','So'],['T','A'],'long','A sequenced procession of small courses composing one long arc.','Tasting menu',['Grant Achatz — <b>Alinea</b>','elBulli']),
-  M('Avant cocktail',['G','O','So'],['A'],'short','A drink designed as a conceptual, multisensory experience.','Cocktail',['Tony Conigliaro — <b>69 Colebrooke Row</b>']),
+  M('Avant cocktail',['G','O','So'],['A'],'short','A drink designed as a conceptual, multisensory experience.','Cocktail',['Tony Conigliaro — <b>69 Colebrooke Row</b>@@https://www.69colebrookerow.com/']),
   M('Perfume',['O'],['T','A'],'short','Composed scent that unfolds over time on the skin.','Perfume',['Comme des Garçons — <b>Odeur 53</b>']),
   M('Tactile / relational object',['So'],['A','E'],'short','Things made to be handled, where the meaning lives in touch.','Lygia Clark',['Lygia Clark — <b>Bichos</b>, sensorial works']),
   M('Multisensory dining',['G','O','So','P','Ac','Th'],['S','T','A','M'],'long','A meal staged with image, sound, and scent into total theater.','Molecular gastronomy',['Paul Pairet — <b>Ultraviolet</b>','Heston Blumenthal — <b>Sound of the Sea</b>']),
@@ -433,9 +433,9 @@ const MEDIA=[
   M('Sauna / thermal bathing',['Th','So','P','K'],['S','T','A','E'],'long','Heat and cold worked over the whole body in sequence — temperature itself as the medium, and you the participant.','Sauna',['Finnish <b>sauna</b>','Russian <b>banya</b>','Japanese <b>onsen</b>']),
   M('Ice & melt art',['Th','P'],['T','A'],'long','Cold made visible and temporary — form that exists only while it is melting.','Ice sculpture',['Olafur Eliasson — <b>Ice Watch</b>','Andy Goldsworthy — ice works']),
   M('Contact improvisation',['So','K'],['T','A','E'],'short','Two bodies improvising through shared weight — felt more than watched.','Contact improvisation',['Steve Paxton']),
-  M('Choreography',['P','Ac','K'],['T','A','M'],'long','Designed human movement performed in space and time.','Choreography',['Pina Bausch — <b>Café Müller</b>','William Forsythe']),
+  M('Choreography',['P','Ac','K'],['T','A','M'],'long','Designed human movement performed in space and time.','Choreography',['Pina Bausch — <b>Café Müller</b>','William Forsythe@@William Forsythe (choreographer)']),
   M('Butoh',['P','K'],['T','A','M'],'short','Slow, extreme Japanese dance of inner states made visible.','Butoh',['Sankai Juku']),
-  M('Sign-language poetry',['P','K'],['T','L','A','M'],'short','Poetry composed in the moving hands and body of signed language.','ASL literature',['Clayton Valli — ASL poetry']),
+  M('Sign-language poetry',['P','K'],['T','L','A','M'],'short','Poetry composed in the moving hands and body of signed language.','American Sign Language literature',['Clayton Valli — ASL poetry']),
   M('Ballet',['P','Ac'],['S','T','A','M'],'long','Codified, virtuosic dance set to music and story.','Ballet',['Nijinsky / Stravinsky — <b>The Rite of Spring</b>']),
   M('Mime',['P'],['T','A','M'],'short','Story and emotion conveyed by the silent, stylized body alone.','Mime artist',['Marcel Marceau']),
   M('Performance art',['P','So','K'],['T','A','M'],'long','The artist\u2019s own body and presence as the medium, often endured live.','Performance art',['Marina Abramović — <b>The Artist Is Present</b>']),
@@ -443,9 +443,9 @@ const MEDIA=[
   M('Theme ride',['P','Ac','So','K'],['S','T','A','M'],'short','An engineered journey through staged space, story delivered by motion.','Dark ride',['Disney — <b>Haunted Mansion</b>']),
   M('Theater (play)',['P','Ac'],['S','T','L','A','M'],'long','Live actors enacting a story in a shared room.','Theatre',['Beckett — <b>Waiting for Godot</b>']),
   M('Opera',['P','Ac'],['S','T','L','A','M'],'long','Drama sung — music, voice, staging, and spectacle fused.','Opera',['Glass & Wilson — <b>Einstein on the Beach</b>']),
-  M('Musical',['P','Ac'],['S','T','L','A','M'],'long','Story told through book, song, and dance together.','Musical theatre',['<b>Hamilton</b>','Sondheim — <b>Sweeney Todd</b>']),
+  M('Musical',['P','Ac'],['S','T','L','A','M'],'long','Story told through book, song, and dance together.','Musical theatre',['<b>Hamilton</b>@@Hamilton (musical)','Sondheim — <b>Sweeney Todd</b>']),
   M('Puppetry',['P','Ac'],['S','T','L','A','M'],'long','Inanimate figures animated into living, feeling characters.','Puppetry',['Handspring — <b>War Horse</b>','Bunraku']),
-  M('Circus (nouveau)',['P','Ac','K'],['S','T','A','M'],'long','Acrobatic spectacle reframed as poetic, narrative performance.','Contemporary circus',['Compagnie XY']),
+  M('Circus (nouveau)',['P','Ac','K'],['S','T','A','M'],'long','Acrobatic spectacle reframed as poetic, narrative performance.','Contemporary circus',['Compagnie XY@@https://www.ciexy.com/']),
   M('Magic / illusion',['P','Ac'],['T','A','M'],'short','Live performance built on the felt impossibility of what you just saw.','Magic (illusion)',['Derek DelGaudio — <b>In & Of Itself</b>']),
   M('Improv theatre',['P','Ac'],['T','L','A','M','E'],'short','Theatre built live from audience suggestion — language and story conjured on the spot, never to recur.','Improvisational theatre',['Keith Johnstone — <b>Theatresports</b>','Upright Citizens Brigade']),
   M('Stand-up (as art)',['Ac','P'],['T','L','A','M'],'short','Solo spoken performance shaped toward confession or argument.','Stand-up comedy',['Hannah Gadsby — <b>Nanette</b>']),
@@ -455,7 +455,7 @@ const MEDIA=[
   M('Animation',['P','Ac'],['T','L','A','M'],'long','Frame-by-frame imagined worlds, freed from what a camera can capture.','Animation',['Yuasa — <b>Mind Game</b>','Folman — <b>Waltz with Bashir</b>']),
   M('Music video',['P','Ac'],['T','L','A','M'],'short','A song made visual — image and sound in tight short form.','Music video',['Michel Gondry','Peter Gabriel — <b>Sledgehammer</b>']),
   M('Responsive installation',['P','Ac','So'],['S','A','E'],'perpetual','A room that watches and answers — your motion is the brush, and the work has no fixed state.','Interactive art',['Rafael Lozano-Hemmer — <b>Pulse Room</b>','Camille Utterback — <b>Text Rain</b>']),
-  M('Puzzle game',['P','Ac'],['S','T','Y','E'],'long','Interactive systems whose pleasure is the click of grasping a rule.','Puzzle video game',['<b>The Witness</b>','<b>Baba Is You</b>']),
+  M('Puzzle game',['P','Ac'],['S','T','Y','E'],'long','Interactive systems whose pleasure is the click of grasping a rule.','Puzzle video game',['<b>The Witness</b>@@The Witness (2016 video game)','<b>Baba Is You</b>']),
   M('Escape room',['P','So','K'],['S','T','Y','E'],'short','A physical space you solve as a team against the clock.','Escape room',['SCRAP — <b>Real Escape Game</b>']),
   M('Video game',['P','Ac'],['S','T','L','A','M','E'],'long','Authored interactive worlds where your choices drive the story.','Video game',['<b>Disco Elysium</b>','<b>Outer Wilds</b>','<b>Kentucky Route Zero</b>']),
   M('Walking-sim',['P','Ac'],['S','T','L','A','M','E'],'long','Story-led game where exploring a space, not winning, is the point.','Walking simulator',['<b>Gone Home</b>','<b>Dear Esther</b>']),
@@ -597,7 +597,7 @@ const cancelHide=()=>clearTimeout(hideTimer);
 const scheduleHide=()=>{hideTimer=setTimeout(()=>{wikicard.classList.remove('show');wikicard.dataset.for='';},200);};
 wikicard.addEventListener('mouseenter',cancelHide);
 wikicard.addEventListener('mouseleave',scheduleHide);
-document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a){cancelHide();showWiki(a);}});
+document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a&&!a.dataset.ext){cancelHide();showWiki(a);}});
 document.addEventListener('mouseout',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a)scheduleHide();});
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.wikilink');if(a){wikicard.classList.remove('show');wikicard.dataset.for='';}},true); // let the link open Wikipedia in a new tab
 addEventListener('scroll',()=>{if(wikicard.classList.contains('show')){wikicard.classList.remove('show');wikicard.dataset.for='';}},true);
@@ -614,8 +614,16 @@ function cardHTML(m,exact){
   const opB=m.op.length?`<span class="pb op">${m.op.join(' ')}</span>`:`<span class="pb none">∅ op</span>`;
   const durB=`<span class="pb dur">${DURNAME[m.dur]}</span>`;
   const link=`<a class="wikilink" data-wiki="${m.wiki.replace(/"/g,'&quot;')}" href="https://en.wikipedia.org/wiki/${encodeURIComponent(m.wiki.replace(/ /g,'_'))}" target="_blank" rel="noopener">${m.name}</a>`;
-  const items=m.items.map(it=>{const q=itemQuery(it);
-    return `<li><a class="wikilink" data-wikisearch="${escAttr(q)}" href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}" target="_blank" rel="noopener">${it}</a></li>`;}).join('');
+  const items=m.items.map(it=>{
+    // "Display@@target" pins an exact link: a full URL (external page) or an exact Wikipedia title.
+    const at=it.indexOf('@@'); let disp=it, tgt=null;
+    if(at>=0){disp=it.slice(0,at); tgt=it.slice(at+2);}
+    if(tgt&&/^https?:/.test(tgt)){
+      return `<li><a class="wikilink" data-ext="1" href="${escAttr(tgt)}" target="_blank" rel="noopener">${disp}</a></li>`;}
+    if(tgt){
+      return `<li><a class="wikilink" data-wiki="${escAttr(tgt)}" href="https://en.wikipedia.org/wiki/${encodeURIComponent(tgt.replace(/ /g,'_'))}" target="_blank" rel="noopener">${disp}</a></li>`;}
+    const q=itemQuery(disp);
+    return `<li><a class="wikilink" data-wikisearch="${escAttr(q)}" href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}" target="_blank" rel="noopener">${disp}</a></li>`;}).join('');
   return `<article class="card${exact?' exact':''}" data-mi="${m._i}"><h3>${link}${exact?'<span class="tag">exact cell</span>':''}</h3>
     <p class="blurb">${m.blurb}</p>
     <div class="profile">${senseB}${opB}${durB}</div>
