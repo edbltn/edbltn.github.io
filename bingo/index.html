@@ -226,7 +226,7 @@ function renderInput(){
   const app = $("#app");
   app.innerHTML = `
     <h1>Baby Shower Bingo 🐳🦕</h1>
-    <p class="sub">Drop one true baby-fact about yourself. Once all ${TOTAL} guests have joined the pod, your bingo board hatches — then go meet the humans behind the facts!</p>
+    <p class="sub">Drop one true baby-fact about yourself. Once ${TOTAL} guests have joined the pod, your bingo board hatches — then go meet the humans behind the facts!</p>
     <div class="card">
       <label for="name">Your name</label>
       <input id="name" type="text" placeholder="e.g. Auntie Jess" autocomplete="name" maxlength="60">
@@ -311,14 +311,15 @@ function renderWaiting(count){
   }
   $("#app").innerHTML = `
     <h1>Almost hatching! 🥚</h1>
-    <p class="sub">Your bingo board appears the moment all ${TOTAL} guests have joined. Go say hi while we wait!</p>
+    <p class="sub">Your bingo board appears the moment ${TOTAL} guests have joined. Go say hi while we wait!</p>
     <div class="card">
       <div class="count">${count}<small> / ${TOTAL} joined</small></div>
       <div class="eggs">${eggs}</div>
       <div class="myfact"><b>You're in 🎉 — your fact</b>${esc(me.fact)}</div>
     </div>
-    <div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a></div>`;
+    ${footerHTML()}`;
   $("#reset").onclick = doReset;
+  { const hc = $("#hostClear"); if(hc) hc.onclick = hostClear; }
 }
 
 function buildBoard(facts){
@@ -348,10 +349,11 @@ function buildBoard(facts){
     </div>
     <div class="banner" id="banner" style="display:none"></div>
     <div class="grid" id="grid">${cells}</div>
-    <div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a></div>`;
+    ${footerHTML()}`;
 
   $("#grid").addEventListener("input", onCellInput);
   $("#reset").onclick = doReset;
+  { const hc = $("#hostClear"); if(hc) hc.onclick = hostClear; }
 
   knownLines = currentLines();   // baseline (don't animate already-complete lines on load)
   updateBanner();
@@ -489,6 +491,33 @@ function fireConfetti(){
 }
 
 /* ---------- reset ---------- */
+/* ---------- host controls (name === "Eric Bolton") ---------- */
+function isHost(){ return norm(me && me.name) === "eric bolton"; }
+function footerHTML(){
+  return `<div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a>` +
+    (isHost() ? ` &nbsp;·&nbsp; <a id="hostClear">🧹 Host: clear everyone's facts</a>` : ``) +
+    `</div>`;
+}
+function hostClear(){
+  confirmModal("Clear EVERYONE's facts?",
+    `This deletes all submitted facts and resets the game to 0/${TOTAL}. This can't be undone.`,
+    "Yes, reset the game 🧹", async ()=>{
+      try{
+        const res = await fetch(API+"/facts/clear", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({admin: me.name})
+        });
+        if(!res.ok) throw new Error("status "+res.status);
+        localStorage.removeItem(LS_ME);
+        localStorage.removeItem(LS_GRID);
+        me=null; gridNames={}; knownLines=new Set();
+        render();
+      }catch(e){
+        confirmModal("Couldn't clear", "The server didn't accept the reset — check connection and try again.", "OK", null);
+      }
+    });
+}
+
 function doReset(){
   confirmModal("Start over completely?",
     "This clears your fact AND your board on this device — you'll rejoin from scratch.",
