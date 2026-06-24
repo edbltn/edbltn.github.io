@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Baby Shower Bingo 🐳🦕</title>
+<meta name="description" content="Human bingo for the baby shower — submit a baby fact, then find the humans behind the facts.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🐳</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#bfe7fb; --mint:#dcf6ea; --cream:#fff8ec;
+    --ink:#2c5d72; --ink-soft:#5b8aa0;
+    --coral:#ff8d7a; --coral-d:#ff6f59;
+    --sun:#ffd964; --teal:#3a9bb8;
+    --green:#5ccb8f; --green-d:#36b073;
+    --white:#ffffff;
+    --shadow:0 10px 30px rgba(40,90,114,.16);
+    --radius:20px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Fredoka',system-ui,-apple-system,'Segoe UI',sans-serif;
+    color:var(--ink);
+    min-height:100dvh;
+    background:linear-gradient(160deg,var(--sky) 0%,var(--mint) 45%,var(--cream) 100%);
+    background-attachment:fixed;
+    overflow-x:hidden;
+  }
+  /* floating background critters */
+  .bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .bg span{position:absolute;font-size:42px;opacity:.16;animation:drift linear infinite;}
+  @keyframes drift{
+    0%{transform:translateY(20px) rotate(-6deg);}
+    50%{transform:translateY(-20px) rotate(6deg);}
+    100%{transform:translateY(20px) rotate(-6deg);}
+  }
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:22px 16px 60px;}
+
+  h1{font-weight:700;font-size:clamp(28px,7vw,44px);margin:.2em 0 .1em;line-height:1.05;text-align:center;}
+  .sub{text-align:center;color:var(--ink-soft);font-weight:500;font-size:clamp(15px,3.6vw,18px);margin:0 auto 22px;max-width:30em;}
+  .card{background:rgba(255,255,255,.82);backdrop-filter:blur(6px);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;border:2px solid rgba(255,255,255,.9);}
+
+  label{display:block;font-weight:600;margin:14px 0 6px;font-size:15px;}
+  input[type=text],textarea{
+    width:100%;font-family:inherit;font-size:16px;color:var(--ink);
+    background:var(--white);border:2px solid #d4ebf4;border-radius:14px;
+    padding:13px 15px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  textarea{resize:vertical;min-height:84px;line-height:1.4;}
+  input[type=text]:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 4px rgba(58,155,184,.16);}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip{
+    cursor:pointer;border:2px dashed #bfe0d2;background:rgba(220,246,234,.7);
+    color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:500;
+    padding:8px 12px;border-radius:999px;transition:transform .1s,background .15s,border-color .15s;
+  }
+  .chip:hover{background:#cdeede;border-color:var(--green);}
+  .chip:active{transform:scale(.95);}
+
+  .btn{
+    display:block;width:100%;margin-top:22px;cursor:pointer;border:none;
+    font-family:inherit;font-weight:600;font-size:19px;color:#fff;
+    background:linear-gradient(180deg,var(--coral),var(--coral-d));
+    padding:15px;border-radius:16px;box-shadow:0 8px 18px rgba(255,111,89,.35);
+    transition:transform .1s,filter .15s;
+  }
+  .btn:hover{filter:brightness(1.04);}
+  .btn:active{transform:translateY(2px);}
+  .btn[disabled]{filter:grayscale(.4) brightness(.95);cursor:default;transform:none;}
+  .err{color:var(--coral-d);font-weight:600;text-align:center;margin-top:12px;min-height:1.2em;}
+  .hint{color:var(--ink-soft);font-size:13.5px;text-align:center;margin-top:12px;}
+
+  /* waiting room */
+  .count{text-align:center;font-weight:700;font-size:clamp(46px,16vw,90px);line-height:1;margin:6px 0 2px;color:var(--teal);}
+  .count small{font-size:.42em;color:var(--ink-soft);}
+  .eggs{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:340px;margin:22px auto 6px;}
+  .eggs span{font-size:30px;text-align:center;filter:drop-shadow(0 3px 3px rgba(40,90,114,.12));transition:transform .3s;}
+  .eggs span.hatched{animation:pop .4s ease;}
+  @keyframes pop{0%{transform:scale(.3) rotate(-20deg);}70%{transform:scale(1.25);}100%{transform:scale(1);}}
+  .myfact{background:rgba(255,217,100,.28);border:2px solid var(--sun);border-radius:14px;padding:12px 16px;margin:18px auto 0;max-width:30em;text-align:center;font-weight:500;}
+  .myfact b{display:block;font-weight:600;color:var(--teal);font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+
+  /* board */
+  .board-head{text-align:center;margin-bottom:14px;}
+  .legend{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;color:var(--ink-soft);font-size:14px;margin-top:4px;}
+  .pill{background:rgba(255,255,255,.7);border-radius:999px;padding:5px 12px;font-weight:500;}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:8px;}
+  .cell{
+    background:rgba(255,255,255,.92);border:2px solid #d8eef6;border-radius:13px;
+    padding:6px 5px 6px;display:flex;flex-direction:column;min-height:96px;min-width:0;
+    transition:transform .12s,border-color .2s,background .25s,box-shadow .2s;
+  }
+  .cell .fact{flex:1;font-size:10.5px;line-height:1.22;font-weight:500;overflow:hidden;margin-bottom:5px;word-break:break-word;}
+  .cell .who{
+    width:100%;min-width:0;font-family:inherit;font-size:12px;font-weight:600;text-align:center;
+    border:none;border-top:2px dashed #cfe6f0;background:transparent;color:var(--ink);
+    padding:5px 2px 2px;outline:none;
+  }
+  .cell .who::placeholder{color:#a9c7d4;font-weight:400;}
+  .cell.filled{background:linear-gradient(170deg,#d6f7e6,#aee9c9);border-color:var(--green-d);box-shadow:0 6px 14px rgba(54,176,115,.22);}
+  .cell.filled .who{border-top-color:rgba(54,176,115,.5);color:var(--green-d);}
+  .cell.me{background:linear-gradient(170deg,#fff0c2,#ffe08a);border-color:var(--sun);}
+  .cell.me .who{border-top-color:rgba(230,170,40,.5);color:#a9760f;}
+  .cell.me .fact::after{content:" 🐣";}
+  .cell.line{animation:wob .5s ease;}
+  @keyframes wob{0%,100%{transform:scale(1);}50%{transform:scale(1.06) rotate(1deg);}}
+
+  .banner{text-align:center;font-weight:700;font-size:20px;color:var(--green-d);background:rgba(92,203,143,.16);border:2px solid var(--green);border-radius:14px;padding:10px;margin-bottom:14px;}
+  .footer{text-align:center;margin-top:26px;}
+  .footer a{color:var(--ink-soft);font-size:13px;text-decoration:none;border-bottom:1px dotted var(--ink-soft);cursor:pointer;}
+
+  /* loading */
+  .loading{text-align:center;padding:40px 0;color:var(--ink-soft);font-size:18px;font-weight:500;}
+  .loading .spin{font-size:48px;display:inline-block;animation:swim 2.4s ease-in-out infinite;}
+  @keyframes swim{0%{transform:translateX(-12px) scaleX(1);}49%{transform:translateX(12px) scaleX(1);}50%{transform:translateX(12px) scaleX(-1);}99%{transform:translateX(-12px) scaleX(-1);}100%{transform:translateX(-12px) scaleX(1);}}
+
+  /* celebration modal */
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50;}
+  .modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(44,93,114,.35);backdrop-filter:blur(3px);animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  .modal .box{background:var(--cream);border-radius:26px;padding:30px 26px;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(40,90,114,.35);border:3px solid #fff;animation:bounce .5s cubic-bezier(.2,1.3,.4,1);}
+  @keyframes bounce{from{transform:scale(.6);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal h2{font-size:42px;margin:0 0 6px;color:var(--coral-d);}
+  .modal .critters{font-size:42px;margin:6px 0 10px;}
+  .modal p{color:var(--ink);font-weight:500;font-size:17px;line-height:1.4;margin:0 0 8px;}
+  .modal .big{font-weight:600;color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+<div class="wrap"><div id="app"></div></div>
+<canvas id="confetti"></canvas>
+
+<script>
+const API = "https://human-bingo-katze52zaq-uc.a.run.app";
+const TOTAL = 25;
+const LS_ME = "babyBingo.me.v1";
+const LS_GRID = "babyBingo.grid.v1";
+
+const PROMPTS = [
+  "My first word was…",
+  "As a baby I absolutely refused to…",
+  "My family nickname was…",
+  "My parents say I was obsessed with…",
+  "As a toddler I was terrified of…",
+  "My comfort object was…",
+  "The movie I watched on repeat was…",
+  "The weirdest thing I ate as a kid was…",
+  "I once got in big trouble for…",
+  "My very first pet was…",
+  "I took my first steps somewhere funny:…",
+  "When I was little I wanted to grow up to be…"
+];
+
+const $ = (s,el=document)=>el.querySelector(s);
+const load = k => { try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;} };
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let me = load(LS_ME);
+let gridNames = load(LS_GRID) || {};   // factHash -> typed name
+let pollTimer = null;
+let gridBuilt = false;
+let gridOrder = [];                     // 25 fact hashes in board order
+let knownLines = new Set();
+
+/* ---------- deterministic shuffle seeded by the player's hash ---------- */
+function rngFrom(str){
+  let h = 1779033703 ^ str.length;
+  for(let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h<<13)|(h>>>19); }
+  return function(){ h = Math.imul(h ^ (h>>>16), 2246822507); h = Math.imul(h ^ (h>>>13), 3266489909); return ((h ^= h>>>16) >>> 0)/4294967296; };
+}
+function seededShuffle(arr, seed){
+  const r = rngFrom(seed), b = arr.slice();
+  for(let i=b.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; }
+  return b;
+}
+
+/* ---------- background critters ---------- */
+(function decor(){
+  const bg = $("#bg"), critters=["🐳","🦕","🐋","🦖","🥚","🍼","🐉","🐟"];
+  let html="";
+  for(let i=0;i<9;i++){
+    const c=critters[i%critters.length];
+    const left=(i*11+5)%96, top=(i*23+8)%92, dur=14+(i%6)*3, del=-(i*2);
+    html+=`<span style="left:${left}vw;top:${top}vh;animation-duration:${dur}s;animation-delay:${del}s;font-size:${34+(i%4)*10}px">${c}</span>`;
+  }
+  bg.innerHTML=html;
+})();
+
+/* ---------- router ---------- */
+function render(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+  gridBuilt=false;
+  if(!me) renderInput(); else renderBoard();
+}
+
+/* ---------- page 1: submit your fact ---------- */
+function renderInput(){
+  const app = $("#app");
+  app.innerHTML = `
+    <h1>Baby Shower Bingo 🐳🦕</h1>
+    <p class="sub">Drop one true baby-fact about yourself. Once all ${TOTAL} guests have joined the pod, your bingo board hatches — then go meet the humans behind the facts!</p>
+    <div class="card">
+      <label for="name">Your name</label>
+      <input id="name" type="text" placeholder="e.g. Auntie Jess" autocomplete="name" maxlength="60">
+
+      <label for="fact">A fun baby-fact about you</label>
+      <textarea id="fact" maxlength="220" placeholder="Something true & memorable about little-you 👶"></textarea>
+      <div class="chips" id="chips"></div>
+
+      <button class="btn" id="go">Join the pod 🐳</button>
+      <div class="err" id="err"></div>
+      <div class="hint">Make it specific & guessable — this exact fact lands on everyone's bingo board.</div>
+    </div>`;
+
+  const chips = $("#chips");
+  chips.innerHTML = PROMPTS.map((p,i)=>`<button class="chip" data-i="${i}">${esc(p)}</button>`).join("");
+  chips.onclick = e => {
+    const b = e.target.closest(".chip"); if(!b) return;
+    const fact = $("#fact");
+    fact.value = PROMPTS[b.dataset.i] + " ";
+    fact.focus();
+    fact.setSelectionRange(fact.value.length, fact.value.length);
+  };
+
+  $("#go").onclick = submitFact;
+}
+
+async function submitFact(){
+  const name = $("#name").value.trim();
+  const fact = $("#fact").value.trim();
+  const err = $("#err"), btn = $("#go");
+  if(!name){ err.textContent="Pop your name in first! 🍼"; return; }
+  if(fact.length < 4){ err.textContent="Give us a real baby-fact 👶"; return; }
+  err.textContent="";
+  btn.disabled = true; btn.textContent = "Joining the pod…";
+  const hash = (crypto.randomUUID ? crypto.randomUUID() : "h"+Date.now()+Math.random());
+  try{
+    const res = await fetch(API+"/facts", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({hash, name, fact})
+    });
+    if(!res.ok) throw new Error("bad status "+res.status);
+    me = {hash, name, fact};
+    save(LS_ME, me);
+    render();
+  }catch(e){
+    btn.disabled=false; btn.textContent="Join the pod 🐳";
+    err.textContent="Couldn't reach the pod — check connection & retry.";
+  }
+}
+
+/* ---------- page 2: waiting room OR board ---------- */
+function renderBoard(){
+  $("#app").innerHTML = `<div class="loading"><div class="spin">🐳</div><div>Checking the pod…</div></div>`;
+  refresh();
+  pollTimer = setInterval(refresh, 4000);
+}
+
+async function refresh(){
+  let data;
+  try{
+    const res = await fetch(API+"/facts", {cache:"no-store"});
+    data = await res.json();
+  }catch(e){
+    if(!gridBuilt) $("#app").innerHTML =
+      `<div class="loading"><div class="spin">🐟</div><div>Lost the pod for a sec… retrying.</div></div>`;
+    return;
+  }
+  if(data.count >= TOTAL){
+    if(!gridBuilt) buildBoard(data.facts.slice(0, TOTAL));
+  } else {
+    renderWaiting(data.count);
+  }
+}
+
+function renderWaiting(count){
+  const animals=["🐳","🦕","🐋","🦖","🐉","🐢","🐠","🦎"];
+  let eggs="";
+  for(let i=0;i<TOTAL;i++){
+    eggs += i<count
+      ? `<span class="hatched">${animals[i%animals.length]}</span>`
+      : `<span>🥚</span>`;
+  }
+  $("#app").innerHTML = `
+    <h1>Almost hatching! 🥚</h1>
+    <p class="sub">Your bingo board appears the moment all ${TOTAL} guests have joined. Go say hi while we wait!</p>
+    <div class="card">
+      <div class="count">${count}<small> / ${TOTAL} joined</small></div>
+      <div class="eggs">${eggs}</div>
+      <div class="myfact"><b>You're in 🎉 — your fact</b>${esc(me.fact)}</div>
+    </div>
+    <div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a></div>`;
+  $("#reset").onclick = doReset;
+}
+
+function buildBoard(facts){
+  gridBuilt = true;
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+
+  const ordered = seededShuffle(facts, me.hash);
+  gridOrder = ordered.map(f=>f.hash);
+
+  let cells="";
+  ordered.forEach((f)=>{
+    const isMe = f.hash === me.hash;
+    const val = isMe ? me.name : (gridNames[f.hash]||"");
+    const filled = isMe || (val && val.length>0);
+    cells += `<div class="cell ${isMe?'me':''} ${filled?'filled':''}" data-h="${esc(f.hash)}">
+        <div class="fact">${esc(f.fact)}</div>
+        <input class="who" type="text" maxlength="40" placeholder="who?"
+          value="${esc(val)}" ${isMe?'readonly':''} data-h="${esc(f.hash)}">
+      </div>`;
+  });
+
+  $("#app").innerHTML = `
+    <div class="board-head">
+      <h1>Find the humans 🔎</h1>
+      <p class="sub">Mingle! When you meet the person a square describes, write their name in it. 5 in a row = BINGO.</p>
+      <div class="legend"><span class="pill">🐣 gold = you</span><span class="pill">💚 green = found</span></div>
+    </div>
+    <div class="banner" id="banner" style="display:none"></div>
+    <div class="grid" id="grid">${cells}</div>
+    <div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a></div>`;
+
+  $("#grid").addEventListener("input", onCellInput);
+  $("#reset").onclick = doReset;
+
+  knownLines = currentLines();   // baseline (don't animate already-complete lines on load)
+  updateBanner();
+}
+
+function onCellInput(e){
+  const inp = e.target.closest(".who"); if(!inp) return;
+  const h = inp.dataset.h, val = inp.value.trim();
+  if(val) gridNames[h]=val; else delete gridNames[h];
+  save(LS_GRID, gridNames);
+  inp.closest(".cell").classList.toggle("filled", !!val);
+  checkBingo();
+}
+
+/* ---------- bingo logic ---------- */
+function isMarked(idx){
+  const h = gridOrder[idx];
+  if(h === me.hash) return true;                 // your free space
+  return !!(gridNames[h] && gridNames[h].length);
+}
+function currentLines(){
+  const lines = new Set();
+  for(let r=0;r<5;r++){ let ok=true; for(let c=0;c<5;c++) ok = ok && isMarked(r*5+c); if(ok) lines.add("r"+r); }
+  for(let c=0;c<5;c++){ let ok=true; for(let r=0;r<5;r++) ok = ok && isMarked(r*5+c); if(ok) lines.add("c"+c); }
+  let d1=true,d2=true;
+  for(let i=0;i<5;i++){ d1 = d1 && isMarked(i*5+i); d2 = d2 && isMarked(i*5+(4-i)); }
+  if(d1) lines.add("d1"); if(d2) lines.add("d2");
+  return lines;
+}
+function lineCells(id){
+  const out=[];
+  if(id[0]==="r"){const r=+id[1];for(let c=0;c<5;c++)out.push(r*5+c);}
+  else if(id[0]==="c"){const c=+id[1];for(let r=0;r<5;r++)out.push(r*5+c);}
+  else if(id==="d1"){for(let i=0;i<5;i++)out.push(i*5+i);}
+  else if(id==="d2"){for(let i=0;i<5;i++)out.push(i*5+(4-i));}
+  return out;
+}
+function checkBingo(){
+  const now = currentLines();
+  let fresh=null;
+  now.forEach(id=>{ if(!knownLines.has(id)) fresh=id; });
+  knownLines = now;
+  updateBanner();
+  if(fresh){ flashLine(fresh); celebrate(); }
+}
+function updateBanner(){
+  const b = $("#banner"); if(!b) return;
+  const n = knownLines.size;
+  if(n>0){ b.style.display="block"; b.textContent = `🎉 BINGO! ${n} line${n>1?"s":""} complete — go brag to the room!`; }
+  else b.style.display="none";
+}
+function flashLine(id){
+  const cells = $("#grid").children;
+  lineCells(id).forEach(i=>{ const el=cells[i]; if(el){ el.classList.remove("line"); void el.offsetWidth; el.classList.add("line"); }});
+}
+
+/* ---------- celebration ---------- */
+function celebrate(){
+  fireConfetti();
+  if($(".modal")) return;
+  const m = document.createElement("div");
+  m.className="modal";
+  m.innerHTML = `<div class="box">
+      <h2>BINGO! 🎉</h2>
+      <div class="critters">🐳 🦕 🍼 🥚 🐋</div>
+      <p>You got <span class="big">5 in a row!</span></p>
+      <p>Now grab everyone's attention and tell the room the <span class="big">5 baby-facts about 5 people</span> you discovered. 🎤</p>
+      <button class="btn" id="closeM">Keep mingling 🐾</button>
+    </div>`;
+  document.body.appendChild(m);
+  $("#closeM").onclick = ()=>m.remove();
+  m.addEventListener("click", e=>{ if(e.target===m) m.remove(); });
+}
+
+function fireConfetti(){
+  const cv = $("#confetti"), ctx = cv.getContext("2d");
+  const DPR = Math.min(window.devicePixelRatio||1, 2);
+  cv.width = innerWidth*DPR; cv.height = innerHeight*DPR; ctx.scale(DPR,DPR);
+  const colors=["#ff8d7a","#ffd964","#5ccb8f","#3a9bb8","#bfe7fb","#ffffff"];
+  const emojis=["🐳","🦕","🥚","🍼","🐋","💙","💚"];
+  const parts=[];
+  for(let i=0;i<140;i++){
+    const useEmoji = Math.random()<0.28;
+    parts.push({
+      x:Math.random()*innerWidth, y:-20-Math.random()*innerHeight*0.5,
+      vx:(Math.random()-0.5)*3, vy:2+Math.random()*4,
+      r:6+Math.random()*7, rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.3,
+      color:colors[i%colors.length], emoji:useEmoji?emojis[i%emojis.length]:null
+    });
+  }
+  let frame=0;
+  (function tick(){
+    frame++;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.04; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      if(p.emoji){ ctx.font=(p.r*2.6)+"px serif"; ctx.textAlign="center"; ctx.fillText(p.emoji,0,0); }
+      else { ctx.fillStyle=p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); }
+      ctx.restore();
+    });
+    if(frame<240) requestAnimationFrame(tick);
+    else ctx.clearRect(0,0,innerWidth,innerHeight);
+  })();
+}
+
+/* ---------- reset ---------- */
+function doReset(){
+  if(!confirm("Start over? This clears your fact and board on THIS device.")) return;
+  localStorage.removeItem(LS_ME);
+  localStorage.removeItem(LS_GRID);
+  me=null; gridNames={};
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
