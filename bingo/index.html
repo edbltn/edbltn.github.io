@@ -32,11 +32,11 @@
   }
   /* floating background critters */
   .bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
-  .bg span{position:absolute;font-size:42px;opacity:.16;animation:drift linear infinite;}
+  .bg span{position:absolute;animation:drift ease-in-out infinite;will-change:translate;}
   @keyframes drift{
-    0%{transform:translateY(20px) rotate(-6deg);}
-    50%{transform:translateY(-20px) rotate(6deg);}
-    100%{transform:translateY(20px) rotate(-6deg);}
+    0%{translate:0 16px;}
+    50%{translate:0 -18px;}
+    100%{translate:0 16px;}
   }
   .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:22px 16px 60px;}
 
@@ -129,6 +129,10 @@
   .modal .critters{font-size:42px;margin:6px 0 10px;}
   .modal p{color:var(--ink);font-weight:500;font-size:17px;line-height:1.4;margin:0 0 8px;}
   .modal .big{font-weight:600;color:var(--teal);}
+  .modal h3.ctitle{font-size:27px;margin:0 0 6px;color:var(--teal);font-weight:700;}
+  .modal .btn{margin-top:12px;}
+  .btn-ghost{background:rgba(255,255,255,.72);color:var(--ink);box-shadow:none;border:2px solid #d4ebf4;}
+  .btn-ghost:hover{filter:none;background:#fff;}
 </style>
 </head>
 <body>
@@ -166,8 +170,16 @@ let me = load(LS_ME);
 let gridNames = load(LS_GRID) || {};   // factHash -> typed name
 let pollTimer = null;
 let gridBuilt = false;
-let gridOrder = [];                     // 25 fact hashes in board order
+let gridFacts = [];                     // 25 fact objects in board order
 let knownLines = new Set();
+
+// Identify YOUR free-space tile. Matching by hash alone breaks if you ever
+// re-join (each join mints a new hash), so fall back to name+fact text.
+const norm = s => String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+function isMine(f){
+  if(!f || !me) return false;
+  return f.hash === me.hash || (norm(f.name) === norm(me.name) && norm(f.fact) === norm(me.fact));
+}
 
 /* ---------- deterministic shuffle seeded by the player's hash ---------- */
 function rngFrom(str){
@@ -183,12 +195,21 @@ function seededShuffle(arr, seed){
 
 /* ---------- background critters ---------- */
 (function decor(){
-  const bg = $("#bg"), critters=["🐳","🦕","🐋","🦖","🥚","🍼","🐉","🐟"];
+  const bg = $("#bg");
+  const critters=["🐳","🐋","🐬","🦕","🦖","🐉","🦎","🐊","🐢","🥚","🦴","🐟","🐳","🦕"];
+  const R=(a,b)=>a+Math.random()*(b-a);
   let html="";
-  for(let i=0;i<9;i++){
+  for(let i=0;i<24;i++){
     const c=critters[i%critters.length];
-    const left=(i*11+5)%96, top=(i*23+8)%92, dur=14+(i%6)*3, del=-(i*2);
-    html+=`<span style="left:${left}vw;top:${top}vh;animation-duration:${dur}s;animation-delay:${del}s;font-size:${34+(i%4)*10}px">${c}</span>`;
+    const left=R(-3,98).toFixed(1), top=R(-3,99).toFixed(1);
+    const size=R(24,84).toFixed(0);
+    const hue=Math.floor(R(0,360));
+    const flip=Math.random()<.5?-1:1;
+    const rot=Math.floor(R(-30,30));
+    const op=R(.07,.2).toFixed(2);
+    const dur=R(10,28).toFixed(1);
+    const del=(-R(0,24)).toFixed(1);
+    html+=`<span style="left:${left}vw;top:${top}vh;font-size:${size}px;opacity:${op};animation-duration:${dur}s;animation-delay:${del}s;transform:scaleX(${flip}) rotate(${rot}deg);filter:hue-rotate(${hue}deg) saturate(1.35)">${c}</span>`;
   }
   bg.innerHTML=html;
 })();
@@ -305,17 +326,17 @@ function buildBoard(facts){
   if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
 
   const ordered = seededShuffle(facts, me.hash);
-  gridOrder = ordered.map(f=>f.hash);
+  gridFacts = ordered;
 
   let cells="";
   ordered.forEach((f)=>{
-    const isMe = f.hash === me.hash;
-    const val = isMe ? me.name : (gridNames[f.hash]||"");
-    const filled = isMe || (val && val.length>0);
-    cells += `<div class="cell ${isMe?'me':''} ${filled?'filled':''}" data-h="${esc(f.hash)}">
+    const mine = isMine(f);
+    const val = mine ? me.name : (gridNames[f.hash]||"");
+    const filled = mine || (val && val.length>0);
+    cells += `<div class="cell ${mine?'me':''} ${filled?'filled':''}" data-h="${esc(f.hash)}">
         <div class="fact">${esc(f.fact)}</div>
         <input class="who" type="text" maxlength="40" placeholder="who?"
-          value="${esc(val)}" ${isMe?'readonly':''} data-h="${esc(f.hash)}">
+          value="${esc(val)}" ${mine?'readonly':''} data-h="${esc(f.hash)}">
       </div>`;
   });
 
@@ -347,9 +368,10 @@ function onCellInput(e){
 
 /* ---------- bingo logic ---------- */
 function isMarked(idx){
-  const h = gridOrder[idx];
-  if(h === me.hash) return true;                 // your free space
-  return !!(gridNames[h] && gridNames[h].length);
+  const f = gridFacts[idx];
+  if(!f) return false;
+  if(isMine(f)) return true;                      // your free space
+  return !!(gridNames[f.hash] && gridNames[f.hash].length);
 }
 function currentLines(){
   const lines = new Set();
@@ -397,11 +419,40 @@ function celebrate(){
       <h2>BINGO! 🎉</h2>
       <div class="critters">🐳 🦕 🍼 🥚 🐋</div>
       <p>You got <span class="big">5 in a row!</span></p>
-      <p>Now grab everyone's attention and tell the room the <span class="big">5 baby-facts about 5 people</span> you discovered. 🎤</p>
-      <button class="btn" id="closeM">Keep mingling 🐾</button>
+      <p>Grab everyone's attention and tell the room the <span class="big">5 baby-facts about 5 people</span> you discovered. 🎤</p>
+      <button class="btn" id="backGrid">Back to the grid ✏️</button>
+      <button class="btn btn-ghost" id="newGame">Start a new game 🔄</button>
     </div>`;
   document.body.appendChild(m);
-  $("#closeM").onclick = ()=>m.remove();
+  $("#backGrid").onclick = ()=>m.remove();
+  $("#newGame").onclick = ()=>{
+    m.remove();
+    confirmModal("Start a new game?",
+      "This clears the names you've written on your board. Your own fact stays in the game.",
+      "Yes, new game 🔄", newGame);
+  };
+  m.addEventListener("click", e=>{ if(e.target===m) m.remove(); });
+}
+
+function newGame(){
+  gridNames = {}; save(LS_GRID, gridNames);
+  knownLines = new Set();
+  render();
+}
+
+function confirmModal(title, body, yesLabel, onYes){
+  const m = document.createElement("div");
+  m.className="modal";
+  m.innerHTML = `<div class="box">
+      <div class="critters">🐳 🦕</div>
+      <h3 class="ctitle">${esc(title)}</h3>
+      <p>${esc(body)}</p>
+      <button class="btn" id="cYes">${esc(yesLabel)}</button>
+      <button class="btn btn-ghost" id="cNo">Cancel</button>
+    </div>`;
+  document.body.appendChild(m);
+  $("#cYes").onclick = ()=>{ m.remove(); onYes && onYes(); };
+  $("#cNo").onclick = ()=>m.remove();
   m.addEventListener("click", e=>{ if(e.target===m) m.remove(); });
 }
 
@@ -439,11 +490,14 @@ function fireConfetti(){
 
 /* ---------- reset ---------- */
 function doReset(){
-  if(!confirm("Start over? This clears your fact and board on THIS device.")) return;
-  localStorage.removeItem(LS_ME);
-  localStorage.removeItem(LS_GRID);
-  me=null; gridNames={};
-  render();
+  confirmModal("Start over completely?",
+    "This clears your fact AND your board on this device — you'll rejoin from scratch.",
+    "Yes, start over", ()=>{
+      localStorage.removeItem(LS_ME);
+      localStorage.removeItem(LS_GRID);
+      me=null; gridNames={}; knownLines=new Set();
+      render();
+    });
 }
 
 render();
