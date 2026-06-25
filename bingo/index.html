@@ -143,8 +143,11 @@
 <script>
 const API = "https://human-bingo-katze52zaq-uc.a.run.app";
 const TOTAL = 25;
-const LS_ME = "babyBingo.me.v1";
-const LS_GRID = "babyBingo.grid.v1";
+const LS_ME = "babyBingo.me.v1";        // your latest submission {hash,name,fact}
+const LS_GRID = "babyBingo.grid.v1";    // factHash -> typed name
+const LS_MINE = "babyBingo.mine.v1";    // ALL of your own submissions (free spaces)
+const LS_SEED = "babyBingo.seed.v1";    // stable board-shuffle seed for this device
+const LS_VIEW = "babyBingo.view.v1";    // true if you chose to view the board w/o submitting
 
 const PROMPTS = [
   "My first word was…",
@@ -167,18 +170,27 @@ const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let me = load(LS_ME);
-let gridNames = load(LS_GRID) || {};   // factHash -> typed name
+let mine = load(LS_MINE) || (me ? [me] : []);   // your submissions (back-compat seed from me)
+let gridNames = load(LS_GRID) || {};
+let viewing = !!load(LS_VIEW);          // chose to spectate without submitting
+let forceInput = false;                 // temporarily show the input page (e.g. "submit another")
 let pollTimer = null;
 let gridBuilt = false;
 let gridFacts = [];                     // 25 fact objects in board order
 let knownLines = new Set();
 
-// Identify YOUR free-space tile. Matching by hash alone breaks if you ever
-// re-join (each join mints a new hash), so fall back to name+fact text.
+// Any of YOUR submitted facts is a free space. Match by hash OR name+fact text
+// (re-joining mints a new hash, so text is the reliable key).
 const norm = s => String(s||"").trim().toLowerCase().replace(/\s+/g," ");
 function isMine(f){
-  if(!f || !me) return false;
-  return f.hash === me.hash || (norm(f.name) === norm(me.name) && norm(f.fact) === norm(me.fact));
+  if(!f || !mine.length) return false;
+  return mine.some(x => f.hash === x.hash || (norm(f.name) === norm(x.name) && norm(f.fact) === norm(x.fact)));
+}
+// Stable per-device shuffle seed: first submission's hash, else a random id.
+function getSeed(){
+  let s = load(LS_SEED);
+  if(!s){ s = (me && me.hash) || (crypto.randomUUID ? crypto.randomUUID() : "s"+Date.now()+Math.random()); save(LS_SEED, s); }
+  return s;
 }
 
 /* ---------- deterministic shuffle seeded by the player's hash ---------- */
@@ -218,27 +230,37 @@ function seededShuffle(arr, seed){
 function render(){
   if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
   gridBuilt=false;
-  if(!me) renderInput(); else renderBoard();
+  if(forceInput || (!me && !viewing)) renderInput(); else renderBoard();
 }
 
 /* ---------- page 1: submit your fact ---------- */
 function renderInput(){
   const app = $("#app");
+  const adding = !!me;                 // you've already submitted at least one fact
+  const canBack = me || viewing;       // there's already a board to return to
+  const heading = adding ? "Add another fact 🥚" : "Baby Shower Bingo 🐳🦕";
+  const sub = adding
+    ? "Got another baby-fact to throw in the pod? Add as many as you like — each one lands on the boards as its own square."
+    : `Drop a true baby-fact about yourself. Once ${TOTAL} facts are submitted, your bingo board hatches — then go meet the humans behind the facts!`;
+  const btnLabel = adding ? "Add this fact ➕" : "Join the pod 🐳";
+  const backLabel = canBack ? "← Back to the board" : "Skip — just take me to the board →";
+
   app.innerHTML = `
-    <h1>Baby Shower Bingo 🐳🦕</h1>
-    <p class="sub">Drop one true baby-fact about yourself. Once ${TOTAL} guests have joined the pod, your bingo board hatches — then go meet the humans behind the facts!</p>
+    <h1>${heading}</h1>
+    <p class="sub">${sub}</p>
     <div class="card">
       <label for="name">Your name</label>
-      <input id="name" type="text" placeholder="e.g. Auntie Jess" autocomplete="name" maxlength="60">
+      <input id="name" type="text" placeholder="e.g. Auntie Jess" autocomplete="name" maxlength="60" value="${esc(me ? me.name : "")}">
 
       <label for="fact">A fun baby-fact about you</label>
       <textarea id="fact" maxlength="220" placeholder="Something true & memorable about little-you 👶"></textarea>
       <div class="chips" id="chips"></div>
 
-      <button class="btn" id="go">Join the pod 🐳</button>
+      <button class="btn" id="go">${btnLabel}</button>
       <div class="err" id="err"></div>
       <div class="hint">Make it specific & guessable — this exact fact lands on everyone's bingo board.</div>
-    </div>`;
+    </div>
+    <div class="footer"><a id="skip">${backLabel}</a></div>`;
 
   const chips = $("#chips");
   chips.innerHTML = PROMPTS.map((p,i)=>`<button class="chip" data-i="${i}">${esc(p)}</button>`).join("");
@@ -251,6 +273,11 @@ function renderInput(){
   };
 
   $("#go").onclick = submitFact;
+  $("#skip").onclick = ()=>{
+    if(!canBack){ viewing = true; save(LS_VIEW, true); }
+    forceInput = false;
+    render();
+  };
 }
 
 async function submitFact(){
@@ -260,7 +287,8 @@ async function submitFact(){
   if(!name){ err.textContent="Pop your name in first! 🍼"; return; }
   if(fact.length < 4){ err.textContent="Give us a real baby-fact 👶"; return; }
   err.textContent="";
-  btn.disabled = true; btn.textContent = "Joining the pod…";
+  const origLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending to the pod…";
   const hash = (crypto.randomUUID ? crypto.randomUUID() : "h"+Date.now()+Math.random());
   try{
     const res = await fetch(API+"/facts", {
@@ -268,11 +296,14 @@ async function submitFact(){
       body: JSON.stringify({hash, name, fact})
     });
     if(!res.ok) throw new Error("bad status "+res.status);
-    me = {hash, name, fact};
-    save(LS_ME, me);
+    const entry = {hash, name, fact};
+    mine.push(entry); save(LS_MINE, mine);
+    me = entry; save(LS_ME, me);
+    getSeed();                 // lock in a stable board seed on first submission
+    forceInput = false;
     render();
   }catch(e){
-    btn.disabled=false; btn.textContent="Join the pod 🐳";
+    btn.disabled=false; btn.textContent=origLabel;
     err.textContent="Couldn't reach the pod — check connection & retry.";
   }
 }
@@ -309,35 +340,37 @@ function renderWaiting(count){
       ? `<span class="hatched">${animals[i%animals.length]}</span>`
       : `<span>🥚</span>`;
   }
+  const status = me
+    ? `<div class="myfact"><b>You're in 🎉 — your ${mine.length>1?`${mine.length} facts`:`fact`}</b>${esc(me.fact)}${mine.length>1?` <span style="opacity:.55">(+${mine.length-1} more)</span>`:``}</div>`
+    : `<div class="myfact"><b>👀 Spectating</b>Tap "Submit a fact" below to add yourself to the pod.</div>`;
   $("#app").innerHTML = `
     <h1>Almost hatching! 🥚</h1>
-    <p class="sub">Your bingo board appears the moment ${TOTAL} guests have joined. Go say hi while we wait!</p>
+    <p class="sub">Your bingo board appears the moment ${TOTAL} facts are submitted. Go say hi while we wait!</p>
     <div class="card">
-      <div class="count">${count}<small> / ${TOTAL} joined</small></div>
+      <div class="count">${count}<small> / ${TOTAL} submissions</small></div>
       <div class="eggs">${eggs}</div>
-      <div class="myfact"><b>You're in 🎉 — your fact</b>${esc(me.fact)}</div>
+      ${status}
     </div>
     ${footerHTML()}`;
-  $("#reset").onclick = doReset;
-  { const hc = $("#hostClear"); if(hc) hc.onclick = hostClear; }
+  wireFooter();
 }
 
 function buildBoard(facts){
   gridBuilt = true;
   if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
 
-  const ordered = seededShuffle(facts, me.hash);
+  const ordered = seededShuffle(facts, getSeed());
   gridFacts = ordered;
 
   let cells="";
   ordered.forEach((f)=>{
-    const mine = isMine(f);
-    const val = mine ? me.name : (gridNames[f.hash]||"");
-    const filled = mine || (val && val.length>0);
-    cells += `<div class="cell ${mine?'me':''} ${filled?'filled':''}" data-h="${esc(f.hash)}">
+    const meTile = isMine(f);
+    const val = meTile ? me.name : (gridNames[f.hash]||"");
+    const filled = meTile || (val && val.length>0);
+    cells += `<div class="cell ${meTile?'me':''} ${filled?'filled':''}" data-h="${esc(f.hash)}">
         <div class="fact">${esc(f.fact)}</div>
         <input class="who" type="text" maxlength="40" placeholder="who?"
-          value="${esc(val)}" ${mine?'readonly':''} data-h="${esc(f.hash)}">
+          value="${esc(val)}" ${meTile?'readonly':''} data-h="${esc(f.hash)}">
       </div>`;
   });
 
@@ -352,8 +385,7 @@ function buildBoard(facts){
     ${footerHTML()}`;
 
   $("#grid").addEventListener("input", onCellInput);
-  $("#reset").onclick = doReset;
-  { const hc = $("#hostClear"); if(hc) hc.onclick = hostClear; }
+  wireFooter();
 
   knownLines = currentLines();   // baseline (don't animate already-complete lines on load)
   updateBanner();
@@ -494,10 +526,18 @@ function fireConfetti(){
 /* ---------- host controls (name === "Eric Bolton") ---------- */
 function isHost(){ return norm(me && me.name) === "eric bolton"; }
 function footerHTML(){
-  return `<div class="footer"><a id="reset">Not ${esc(me.name)}? Start over</a>` +
+  const submitLabel = me ? "➕ Submit another fact" : "➕ Submit a fact";
+  return `<div class="footer">` +
+    `<a id="another">${submitLabel}</a> &nbsp;·&nbsp; <a id="reset">Start over</a>` +
     (isHost() ? ` &nbsp;·&nbsp; <a id="hostClear">🧹 Host: clear everyone's facts</a>` : ``) +
     `</div>`;
 }
+function wireFooter(){
+  const a=$("#another"); if(a) a.onclick=submitAnother;
+  const r=$("#reset"); if(r) r.onclick=doReset;
+  const hc=$("#hostClear"); if(hc) hc.onclick=hostClear;
+}
+function submitAnother(){ forceInput = true; render(); }
 function hostClear(){
   confirmModal("Clear EVERYONE's facts?",
     `This deletes all submitted facts and resets the game to 0/${TOTAL}. This can't be undone.`,
@@ -508,9 +548,8 @@ function hostClear(){
           body: JSON.stringify({admin: me.name})
         });
         if(!res.ok) throw new Error("status "+res.status);
-        localStorage.removeItem(LS_ME);
-        localStorage.removeItem(LS_GRID);
-        me=null; gridNames={}; knownLines=new Set();
+        [LS_ME,LS_GRID,LS_MINE,LS_SEED,LS_VIEW].forEach(k=>localStorage.removeItem(k));
+        me=null; mine=[]; gridNames={}; knownLines=new Set(); viewing=false; forceInput=false;
         render();
       }catch(e){
         confirmModal("Couldn't clear", "The server didn't accept the reset — check connection and try again.", "OK", null);
@@ -520,11 +559,10 @@ function hostClear(){
 
 function doReset(){
   confirmModal("Start over completely?",
-    "This clears your fact AND your board on this device — you'll rejoin from scratch.",
+    "This clears your facts and board on this device — you'll start from scratch.",
     "Yes, start over", ()=>{
-      localStorage.removeItem(LS_ME);
-      localStorage.removeItem(LS_GRID);
-      me=null; gridNames={}; knownLines=new Set();
+      [LS_ME,LS_GRID,LS_MINE,LS_SEED,LS_VIEW].forEach(k=>localStorage.removeItem(k));
+      me=null; mine=[]; gridNames={}; knownLines=new Set(); viewing=false; forceInput=false;
       render();
     });
 }
