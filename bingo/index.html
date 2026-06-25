@@ -558,13 +558,24 @@ function hostClear(){
 }
 
 function doReset(){
-  confirmModal("Start over completely?",
-    "This clears your facts and board on this device — you'll start from scratch.",
-    "Yes, start over", ()=>{
-      [LS_ME,LS_GRID,LS_MINE,LS_SEED,LS_VIEW].forEach(k=>localStorage.removeItem(k));
-      me=null; mine=[]; gridNames={}; knownLines=new Set(); viewing=false; forceInput=false;
-      render();
-    });
+  const n = mine.length;
+  const msg = n
+    ? `This removes the ${n>1?`${n} facts`:`fact`} you submitted from everyone's board and clears this device — you'll start from scratch.`
+    : "This clears your board on this device — you'll start from scratch.";
+  confirmModal("Start over completely?", msg, "Yes, start over", async ()=>{
+    const hashes = mine.map(x=>x.hash).filter(Boolean);
+    if(hashes.length){
+      try{
+        await fetch(API+"/facts/delete", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({hashes})
+        });
+      }catch(e){ /* best-effort; still clear locally */ }
+    }
+    [LS_ME,LS_GRID,LS_MINE,LS_SEED,LS_VIEW].forEach(k=>localStorage.removeItem(k));
+    me=null; mine=[]; gridNames={}; knownLines=new Set(); viewing=false; forceInput=false;
+    render();
+  });
 }
 
 render();
