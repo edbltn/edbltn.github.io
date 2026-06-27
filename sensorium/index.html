@@ -440,6 +440,8 @@ const MEDIA=[
   M('Cryptic crossword',['P'],['L','Y','E'],'short','A lattice of clued wordplay you fill in by hand — language treated as a solvable machine.','Crossword',['<b>The Times</b> cryptic','Araucaria (John Graham)@@John Galbraith Graham']),
   M('Text-light',['P'],['L','A'],'perpetual','Words rendered in glowing signage — language as public, ambient object.','Neon art',['Bruce Nauman','Jenny Holzer — <b>Truisms</b>']),
   M('Sculpture',['P','So'],['S','A'],'static','Mass and surface in three dimensions, meant to be circled by the eye.','Sculpture',['Louise Bourgeois — <b>Maman</b>','Richard Serra']),
+  M('Stone monument',['P','So'],['S','A'],'perpetual','A carved mass raised to stand for ages — weathering in place while generations come and go around it.','Monument',['<b>Moai</b> of Rapa Nui@@Moai','Egyptian <b>obelisk</b>@@Obelisk','<b>Mount Rushmore</b>@@Mount Rushmore']),
+  M('Stone glyphs',['P','So'],['S','Y'],'perpetual','Symbols cut into living rock — meaning carved to outlast every reader who kneels to trace it.','Petroglyph',['<b>Petroglyphs</b>@@Petroglyph','Norse <b>runestones</b>@@Runestone','Maya <b>hieroglyphs</b>@@Maya script']),
   M('Textile / fiber',['P','So'],['A'],'static','Woven, knotted, or stitched material raised to the level of art.','Fiber art',['Sheila Hicks','Anni Albers']),
   M('Fashion (garment)',['P','So'],['A'],'static','Clothing designed as sculpture for the body.','Fashion design',['Rei Kawakubo — CdG <b>Body Meets Dress</b>','Iris van Herpen']),
   M('Architecture',['P','So','K','Th'],['S'],'perpetual','Built space you inhabit, shaping movement and light over years.','Architecture',['Gaudí — <b>Sagrada Família</b>','Zumthor — <b>Therme Vals</b>']),
@@ -518,6 +520,7 @@ const MEDIA=[
   M('Film',['P','Ac'],['T','L','A','M'],'long','Sound cinema — image, voice, music, and cut woven into story.','Film',['Tarkovsky — <b>Stalker</b>','Carax — <b>Holy Motors</b>','Kaufman — <b>Synecdoche, New York</b>']),
   M('Animation',['P','Ac'],['T','L','A','M'],'long','Frame-by-frame imagined worlds, freed from what a camera can capture.','Animation',['Yuasa — <b>Mind Game</b>','Folman — <b>Waltz with Bashir</b>']),
   M('Music video',['P','Ac'],['T','L','A','M'],'short','A song made visual — image and sound in tight short form.','Music video',['Michel Gondry','Peter Gabriel — <b>Sledgehammer</b>']),
+  M('Short-form video',['P','Ac'],['T','L','A','M','E'],'perpetual','An endless algorithmic feed of clips that reshapes itself around every swipe — the scroll has no last note.','Short-form content',['<b>TikTok</b>@@TikTok','Instagram <b>Reels</b>@@Reels (Meta)','<b>YouTube Shorts</b>@@YouTube Shorts']),
   M('Responsive installation',['P','Ac','So'],['S','A','E'],'perpetual','A room that watches and answers — your motion is the brush, and the work has no fixed state.','Interactive art',['Rafael Lozano-Hemmer — <b>Pulse Room</b>','Camille Utterback — <b>Text Rain</b>']),
   M('Puzzle game',['P','Ac'],['S','T','Y','E'],'long','Interactive systems whose pleasure is the click of grasping a rule.','Puzzle video game',['<b>The Witness</b>@@The Witness (2016 video game)','<b>Baba Is You</b>']),
   M('Escape room',['P','So','K'],['S','T','Y','E'],'short','A physical space you solve as a team against the clock.','Escape room',['SCRAP — <b>Real Escape Game</b>']),
@@ -681,8 +684,7 @@ document.getElementById('out').addEventListener('click',e=>{
   const isExact=setEq(state.ch,m.ch)&&setEq(state.op,m.op)&&state.dur===m.dur;
   if(isExact){state.ch.clear();state.op.clear();state.dur=null;}
   else{state.ch=new Set(m.ch);state.op=new Set(m.op);state.dur=m.dur;}
-  commit();
-  document.querySelector('.coord').scrollIntoView({behavior:'smooth',block:'nearest'});
+  commit();   // update the coordinate in place — no scroll, so the cards stay put under the cursor
 });
 
 /* ---- wikipedia dark hovercard ---- */
@@ -808,7 +810,7 @@ function render(){
   const ranked=MEDIA.map(m=>({m,...score(m)})).sort((a,b)=>a.dist-b.dist||a.m.name.localeCompare(b.m.name));
   const anyExact=ranked.some(r=>r.exact);
   verdict.innerHTML=(anyExact?'Media that live exactly at this coordinate, then the nearest neighbors. '
-    :'<span class="ground">No named medium sits exactly here — open ground, buildable.</span> The closest occupants: ')
+    :'The closest named media to this coordinate: ')
     +'<span class="hint">Tap a card to jump to its coordinate; hover a title or any recommendation for a Wikipedia preview.</span>';
   // open-ground panel: a concrete empty coordinate gets an "invent one" prompt + AI-seeded idea
   let openHTML='';
@@ -825,12 +827,12 @@ function render(){
         idea=`Something ${lookDur} that reaches you through ${sn}, worked as ${on}.`;
       }
     }
-    openHTML=`<div class="openground"><p class="og-tag">✕ Open ground</p>`+
+    openHTML=`<div class="openground"><p class="og-tag">✕ Undiscovered</p>`+
       (senseless
         ? `<p class="og-lead">Every medium needs a way <em>in</em>. You've chosen ${state.op.size?'an operation':'a grain of time'} but no <b>sense</b> to carry it — open at least one channel on the face above, and the idea for this coordinate will appear.</p>`
-        : `<p class="og-lead">No named medium lives at this exact coordinate.${idea?' A lightning idea for what could:':' It is yours to invent.'}</p>`
+        : `<p class="og-lead">No medium has been named at this exact coordinate yet.${idea?' A lightning idea for what could fill it:':' It is yours to invent.'}</p>`
           + (idea?`<p class="og-idea">“${idea}”</p>`:''))+
-      `<p class="og-foot">One of ~64,900 empty cells in the lattice — most of the space is still open ground.</p></div>`;
+      `<p class="og-foot">One of ~64,900 undiscovered cells — most of the lattice is still open ground, buildable.</p></div>`;
   }
   out.innerHTML=openHTML+`<div class="grid-cards">${ranked.slice(0,10).map(r=>cardHTML(r.m,r.exact)).join('')}</div>`;
 }
