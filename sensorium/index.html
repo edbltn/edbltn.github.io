@@ -370,7 +370,7 @@ const SENSES=[
   {k:'O',nm:'Smell',full:'Olfactory'},{k:'G',nm:'Taste',full:'Gustatory'},
   {k:'So',nm:'Touch',full:'Somatic'},{k:'K',nm:'Balance',full:'Kinesthetic'},
   {k:'Th',nm:'Warmth',full:'Thermal'}];
-const OPS=[{k:'S',nm:'Spatial'},{k:'T',nm:'Temporal'},{k:'L',nm:'Linguistic'},{k:'Y',nm:'Symbolic'},{k:'A',nm:'Affective'},{k:'M',nm:'Mimetic'},{k:'E',nm:'Enactive'}];
+const OPS=[{k:'S',nm:'Spatial',plain:'Space'},{k:'T',nm:'Temporal',plain:'Sequence'},{k:'L',nm:'Linguistic',plain:'Words'},{k:'Y',nm:'Symbolic',plain:'Signs'},{k:'A',nm:'Affective',plain:'Feeling'},{k:'M',nm:'Mimetic',plain:'Maker'},{k:'E',nm:'Enactive',plain:'Doing'}];
 const SENSE_HUE={P:'var(--photic)',Ac:'var(--acoustic)',O:'var(--olfactory)',G:'var(--gustatory)',So:'var(--somatic)',K:'var(--kinesthetic)',Th:'var(--thermal)'};
 const DURNAME={static:'Static',short:'Short',long:'Long',perpetual:'Perpetual'};
 
@@ -591,11 +591,11 @@ SENSES.forEach(s=>{const c=document.createElement('div');c.className='chip';c.da
   c.innerHTML=`${sIco(s.k)}${s.full}<span class="nm">${s.nm}</span>`;senseChips.appendChild(c);});
 const opChips=document.getElementById('opChips');
 OPS.forEach(o=>{const c=document.createElement('div');c.className='chip';c.dataset.op=o.k;c.tabIndex=0;
-  c.innerHTML=`${oIco(o.k)}${o.nm}`;opChips.appendChild(c);});
+  c.innerHTML=`${oIco(o.k)}${o.nm}<span class="nm">${o.plain}</span>`;opChips.appendChild(c);});
 
 const sensePlac=document.getElementById('sensePlac'),opPlac=document.getElementById('opPlac');
 const setSensePlac=k=>{const s=senseById[k];if(s)sensePlac.innerHTML=`<b>${s.full} <span class="pk">${s.k} · ${s.nm}</span></b> — ${SENSE_DESC[k]}`;};
-const setOpPlac=k=>{const o=opById[k];if(o)opPlac.innerHTML=`<b>${o.nm} <span class="pk">${o.k}</span></b> — ${OP_DESC[k]}`;};
+const setOpPlac=k=>{const o=opById[k];if(o)opPlac.innerHTML=`<b>${o.nm} <span class="pk">${o.k} · ${o.plain}</span></b> — ${OP_DESC[k]}`;};
 
 const penta=document.getElementById('penta');
 const PC={cx:220,cy:206,r:116,lr:150};
