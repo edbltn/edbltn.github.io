@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>City Edit — WordHack</title>
+<link rel="stylesheet" href="../styles.css" />
+<script>window.TRIPTYCH_TALK = "../talks/city-edit";</script>
+</head>
+<body>
+<div id="stage" class="stage">
+  <div id="panes" class="panes"></div>
+  <!-- live pages: outside the panes so they survive recycling, load ahead,
+       and are never inside a 3D-transformed ancestor -->
+  <div id="embeds" class="embeds"></div>
+
+  <div class="divider" id="divider0" data-index="0" title="Drag to resize · double-click to reset"><i></i></div>
+  <div class="divider" id="divider1" data-index="1" title="Drag to resize · double-click to reset"><i></i></div>
+</div>
+
+<!-- ───────────────────────── drop / loading ───────────────────────── -->
+<div id="dropzone" class="overlay dropzone">
+  <div class="dz-card">
+    <div class="dz-title">Triptych</div>
+    <p class="dz-sub">Drop a PDF deck here, or <label class="link" for="fileInput">choose a file</label>.<br />
+      <small>Drop the matching <code>.pptx</code> too and its videos come with it.</small></p>
+    <input type="file" id="fileInput" accept=".pdf,.pptx,application/pdf" multiple hidden />
+    <form class="dz-url" id="gsForm">
+      <input type="text" id="gsInput" placeholder="…or paste a Google Slides link" spellcheck="false" />
+      <button type="submit">open</button>
+    </form>
+    <div class="dz-legend">
+      <div><b>→ / space</b> advance · <b>←</b> back</div>
+      <div><b>shift+→ / ↓</b> force rotate to next slide</div>
+      <div><b>drag the hairlines</b> to re-apportion the panes</div>
+      <div><b>s</b> settings · <b>g</b> structure · <b>m</b> sound · <b>v</b> flip embed clicks</div>
+    </div>
+  </div>
+</div>
+
+<div id="loading" class="overlay loading hidden">
+  <div class="load-card">
+    <div class="load-title" id="loadTitle">Rendering pages…</div>
+    <div class="load-bar"><div id="loadFill" class="load-fill"></div></div>
+    <div class="load-sub mono" id="loadSub">0 / 0</div>
+  </div>
+</div>
+
+<!-- ───────────────────────── settings ───────────────────────── -->
+<aside id="settings" class="panel hidden">
+  <header><h2>Settings</h2><button class="x" data-close="settings">×</button></header>
+  <div class="panel-body">
+
+    <section>
+      <h3>Wings</h3>
+      <label class="row"><span>Scale</span>
+        <input type="range" id="setSideScale" min="0.5" max="1" step="0.01" />
+        <output id="outSideScale" class="mono"></output>
+      </label>
+      <label class="row"><span>Fold</span>
+        <input type="range" id="setFold" min="0" max="62" step="1" />
+        <output id="outFold" class="mono"></output>
+      </label>
+      <label class="row"><span>Depth</span>
+        <input type="range" id="setDepth" min="0.7" max="4" step="0.1" />
+        <output id="outDepth" class="mono"></output>
+      </label>
+      <label class="row"><span>Shade</span>
+        <input type="range" id="setDim" min="0" max="0.9" step="0.01" />
+        <output id="outDim" class="mono"></output>
+      </label>
+      <label class="row"><span>Fit</span>
+        <select id="setFit">
+          <option value="fill">fill the flap</option>
+          <option value="contain">whole slide, no stretch</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h3>Web embed</h3>
+      <label class="row col"><span>Page</span>
+        <input type="text" id="setWebEmbed" placeholder="https://…" spellcheck="false" />
+      </label>
+      <label class="row check"><input type="checkbox" id="setWebEmbedBlank" /><span>Fill blank slides with it</span></label>
+      <label class="row"><span>Zoom out</span>
+        <input type="range" id="setEmbedZoom" min="1" max="4" step="0.1" />
+        <output id="outEmbedZoom" class="mono"></output>
+      </label>
+      <label class="row"><span>Preload</span>
+        <input type="range" id="setEmbedPreload" min="0" max="99" step="1" />
+        <output id="outEmbedPreload" class="mono"></output>
+      </label>
+      <p class="hint">A slide left empty in the deck becomes a live page. Point a
+      particular slide at its own page in <code>embeds.json</code>, or put
+      <code>embed: https://…</code> in that slide's speaker notes. Zooming out gives the
+      frame a bigger viewport and scales it down, so you see more of the page. Preload loads
+      a page while its slide is still that many slides away, so it is ready when you arrive
+      — at the cost of the page being open early. It takes
+      the mouse so you can drive it; <b>v</b> hands clicks back to the deck.</p>
+    </section>
+
+    <section>
+      <h3>Video</h3>
+      <label class="row check"><input type="checkbox" id="setVideoAuto" /><span>Play on arrival</span></label>
+      <label class="row check"><input type="checkbox" id="setVideoLoop" /><span>Loop</span></label>
+      <p class="hint">Video comes from the deck itself — an embedded clip, or a slide
+      linked to YouTube. Sound needs a gesture, so the first clip may start muted;
+      <b>m</b> toggles sound.</p>
+      <button class="wide" id="btnCacheVideos">Cache linked clips locally</button>
+      <p class="hint">Downloads each linked clip with <code>yt-dlp</code> and plays it as a
+      plain video — no player chrome, no network during the talk. Needs
+      <code>brew install yt-dlp</code>.</p>
+    </section>
+
+    <section>
+      <h3>Motion</h3>
+      <label class="row"><span>Rotate</span>
+        <input type="range" id="setRotateMs" min="120" max="1600" step="20" />
+        <output id="outRotateMs" class="mono"></output>
+      </label>
+      <label class="row"><span>Within-slide</span>
+        <input type="range" id="setStepMs" min="0" max="900" step="10" />
+        <output id="outStepMs" class="mono"></output>
+      </label>
+      <label class="row"><span>Within-slide style</span>
+        <select id="setStepStyle">
+          <option value="crossfade">crossfade</option>
+          <option value="cut">cut</option>
+          <option value="lift">lift + fade</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h3>Layout</h3>
+      <label class="row"><span>Gutter</span>
+        <input type="range" id="setGutter" min="0" max="48" step="1" />
+        <output id="outGutter" class="mono"></output>
+      </label>
+      <label class="row"><span>Background</span>
+        <input type="color" id="setBg" />
+      </label>
+      <button class="wide" id="btnResetPanes">Reset pane widths (r)</button>
+    </section>
+
+    <section>
+      <h3>Detection</h3>
+      <label class="row"><span>Build threshold</span>
+        <input type="range" id="setThreshold" min="0.60" max="0.99" step="0.005" />
+        <output id="outThreshold" class="mono"></output>
+      </label>
+      <p class="hint">Higher = fewer pages merged into one slide. Manual overrides in the
+      structure inspector always win.</p>
+      <button class="wide" id="btnClearOverrides">Clear manual overrides</button>
+    </section>
+
+  </div>
+</aside>
+
+<!-- ───────────────────────── inspector ───────────────────────── -->
+<aside id="inspector" class="panel wide-panel hidden">
+  <header>
+    <h2>Structure</h2>
+    <span id="inspectorSummary" class="mono dim"></span>
+    <button class="x" data-close="inspector">×</button>
+  </header>
+  <div class="panel-body">
+    <p class="hint">Each junction between two pages is either a <b>rotation</b> (a new slide, panes
+    move across the triptych) or a <b>build</b> (a step inside the current slide). Click a junction
+    to flip it.</p>
+    <p class="hint warn hidden" id="inspectorNote"></p>
+    <div id="filmstrip" class="filmstrip"></div>
+  </div>
+</aside>
+<script type="module" src="../app.js"></script>
+</body>
+</html>

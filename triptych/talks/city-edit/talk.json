@@ -1,0 +1,75 @@
+{
+  "title": "City Edit \u2014 WordHack",
+  "slug": "city-edit",
+  "date": "2026-08-21",
+  "pdf": "deck.pdf",
+  "slideCount": 20,
+  "blanks": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false
+  ],
+  "media": [
+    [],
+    [],
+    [],
+    [
+      {
+        "kind": "youtube",
+        "url": "pJPwlCycLj0",
+        "x": 0.048801727909011376,
+        "y": 0.11687566831923787,
+        "w": 0.9023965441819772,
+        "h": 0.9023962282492466
+      }
+    ],
+    [
+      {
+        "kind": "youtube",
+        "url": "xjOMPka5WFo",
+        "x": 0.05843591426071741,
+        "y": 0.11687566831923787,
+        "w": 0.883128280839895,
+        "h": 0.8831243316807621
+      }
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  "embeds": {
+    "blank": "https://www.ericdidierbolton.com/tales/2/?s=4guxwkbjzb",
+    "slides": {
+      "19": "https://cityedit.org/m/nyc-proposals"
+    }
+  }
+}
