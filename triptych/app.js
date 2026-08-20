@@ -1243,7 +1243,10 @@ async function openTalk(base) {
     mediaByPage = [];
     pptxNote = '';
 
-    const pdf = await fetch(at(talk.pdf || 'deck.pdf'));
+    // the version is the deck's content hash, so a re-published deck can never
+    // come out of a browser cache still holding the old slides
+    const deckUrl = at(talk.pdf || 'deck.pdf') + (talk.version ? `?v=${talk.version}` : '');
+    const pdf = await fetch(deckUrl);
     if (!pdf.ok) throw new Error(`the deck is missing (${pdf.status})`);
     await loadPdf({ data: new Uint8Array(await pdf.arrayBuffer()) }, talk.title || 'talk');
 
