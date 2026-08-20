@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- interactive-widget: Android Chrome shrinks the layout viewport when the
+         keyboard opens, so fixed-bottom UI stays visible; iOS is handled by the
+         visualViewport listener (useKeyboardInset). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <!-- warm up DNS+TLS to the backend while the JS bundle loads -->
+    <link rel="preconnect" href="https://tales-backend-katze52zaq-uc.a.run.app" />
+    <title>Tales</title>
+    <script type="module" crossorigin src="/tales/assets/v2-Do-kqlyy.js"></script>
+    <link rel="modulepreload" crossorigin href="/tales/assets/index-D3WmYY4_.js">
+    <link rel="modulepreload" crossorigin href="/tales/assets/base-DbRTmYWL.js">
+    <link rel="stylesheet" crossorigin href="/tales/assets/base-B_G7Td1H.css">
+    <link rel="stylesheet" crossorigin href="/tales/assets/v2-CnQMDnDW.css">
+  </head>
+  <body>
+    <!-- v2 — "phased beam". Moved here from / when the lobby took over the
+         front door; the lobby is at /, v1 at /1/. Third entry point of the same
+         Vite build, so everything the versions share is emitted once into
+         /assets/. Nothing under src/v2/ moved — only this path. -->
+    <div id="root"></div>
+  </body>
+</html>

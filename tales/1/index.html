@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- interactive-widget: Android Chrome shrinks the layout viewport when the
+         keyboard opens, so fixed-bottom UI stays visible; iOS is handled by the
+         visualViewport listener (useKeyboardInset). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <!-- warm up DNS+TLS to the backend while the JS bundle loads -->
+    <link rel="preconnect" href="https://tales-backend-katze52zaq-uc.a.run.app" />
+    <title>Tales</title>
+    <script type="module" crossorigin src="/tales/assets/v1-Csy8XXHZ.js"></script>
+    <link rel="modulepreload" crossorigin href="/tales/assets/index-D3WmYY4_.js">
+    <link rel="modulepreload" crossorigin href="/tales/assets/base-DbRTmYWL.js">
+    <link rel="stylesheet" crossorigin href="/tales/assets/base-B_G7Td1H.css">
+    <link rel="stylesheet" crossorigin href="/tales/assets/v1-Br7BdPYU.css">
+  </head>
+  <body>
+    <!-- v1 — "human beam search", at /tales/1/. One entry point of the shared
+         Vite build (the lobby is at /, v2 at /2/), so everything v1 has in
+         common with them is emitted into the one /assets/ dir. -->
+    <div id="root"></div>
+  </body>
+</html>

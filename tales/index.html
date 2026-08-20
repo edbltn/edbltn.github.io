@@ -2,17 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- interactive-widget: Android Chrome shrinks the layout viewport when the
-         keyboard opens, so fixed-bottom UI stays visible; iOS is handled by the
-         visualViewport listener (useKeyboardInset). -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-    <!-- warm up DNS+TLS to the backend while the JS bundle loads -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- warm up DNS+TLS to the backend: the lobby calls /api/spaces the moment
+         someone creates or joins one -->
     <link rel="preconnect" href="https://tales-backend-katze52zaq-uc.a.run.app" />
+    <meta name="description" content="Tales — a story written by a crowd, one character at a time. Pick a version, or open a space of your own." />
     <title>Tales</title>
-    <script type="module" crossorigin src="/tales/assets/index-CeZBSqUP.js"></script>
-    <link rel="stylesheet" crossorigin href="/tales/assets/index-CC2CLNYe.css">
+    <script type="module" crossorigin src="/tales/assets/lobby-CVPslkVW.js"></script>
+    <link rel="modulepreload" crossorigin href="/tales/assets/index-D3WmYY4_.js">
+    <link rel="stylesheet" crossorigin href="/tales/assets/lobby-C9XY9Ys8.css">
   </head>
   <body>
+    <!-- The LOBBY. Not a version — the hallway. v1 is at /1/, v2 at /2/.
+         It imports nothing from src/v1 or src/v2, so the front door stays
+         small; see docs/specs/lobby-and-spaces.md. -->
     <div id="root"></div>
   </body>
 </html>
