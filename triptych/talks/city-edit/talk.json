@@ -3,7 +3,11 @@
   "slug": "city-edit",
   "date": "2026-08-21",
   "pdf": "deck.pdf",
-  "version": "418dd8b6e1cc",
+  "version": "cd22dbee6e35",
+  "source": {
+    "kind": "gslides",
+    "id": "193eh1Jd1D_lduqUb5zjGZ-V4M-lNvCKyKD0RCSEegzc"
+  },
   "slideCount": 20,
   "blanks": [
     false,

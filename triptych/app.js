@@ -311,18 +311,16 @@ const currentPage = () => (slides[slideIdx] || [0])[stepIdx] ?? 0;
 
 /* ═══════════════════════════ geometry ═══════════════════════════ */
 
-/* Anchor rects for the five slots a pane can occupy. Slot 0 is the centre;
+const SHUT_TURN = 22;     // extra degrees a panel turns as it closes on its way out
+
+/* Anchor rects for the slots a pane can occupy. Slot 0 is the centre;
  * ±1 are the wings; ±2 sit just off-stage, which is what makes a rotation
  * read as panes sliding across the triptych rather than a crossfade. */
 function anchor(slot, W) {
   const [fl, fc, fr] = settings.fracs;
-  switch (slot) {
-    case -2: return { x: -fl * W, w: fl * W };
-    case -1: return { x: 0, w: fl * W };
-    case 0: return { x: fl * W, w: fc * W };
-    case 1: return { x: (fl + fc) * W, w: fr * W };
-    default: return { x: W, w: fr * W };
-  }
+  if (slot <= -1) return { x: 0, w: fl * W };
+  if (slot >= 1) return { x: (fl + fc) * W, w: fr * W };
+  return { x: fl * W, w: fc * W };
 }
 
 /* The wings fold *toward* the viewer, the way an altarpiece opens out, so the
@@ -346,7 +344,10 @@ function flapWidth(hinge, outer, side, theta, W, P) {
 }
 
 function geomAt(s, W) {
-  const c = clamp(s, -2, 2);
+  // Beyond a wing a panel stops travelling: it stays in the wing's section and
+  // keeps folding instead, so it swings shut on its hinge rather than sliding
+  // off the stage.
+  const c = clamp(s, -1, 1);
   const lo = Math.floor(c), hi = Math.ceil(c), t = c - lo;
   const a = anchor(lo, W), b = anchor(hi, W);
   return { x: lerp(a.x, b.x, t), w: lerp(a.w, b.w, t) };
@@ -427,29 +428,44 @@ function render() {
      * land exactly on the section boundary — otherwise folding one back would
      * pull it away from the divider you placed. */
     const side = s < 0 ? -1 : 1;
-    const theta = (settings.foldDeg * Math.PI / 180) * k;
     const hinge = s < 0 ? sectionX + sectionW : sectionX;
     const outer = s < 0 ? sectionX : sectionX + sectionW;
-    const paneW = theta > 1e-4
-      ? flapWidth(hinge, outer, side, theta, W, settings.depth * W)
+
+    /* Up to the wing, the panel is sized to fill its section at the fold angle.
+     * Past it, the panel leaves by closing against its *outer* edge: that edge
+     * stays where it is — the near, tall one — while everything sweeps outward
+     * into it and the panel narrows to nothing. The squeeze is applied to the
+     * contents (below) rather than the box, so the fold it is already sitting
+     * in carries through the exit. */
+    const shut = clamp(Math.abs(s) - 1, 0, 1);
+    const fillRad = (settings.foldDeg * Math.PI / 180) * k;
+    const deg = settings.foldDeg * k + SHUT_TURN * shut;
+    const paneW = fillRad > 1e-4
+      ? flapWidth(hinge, outer, side, fillRad, W, settings.depth * W)
       : sectionW;
 
     /* An unfolded pane stays a plain 2D layer: Chrome will not composite an
      * iframe (a YouTube player, say) inside a 3D-transformed ancestor, and the
      * centre pane is exactly where those live. */
-    const deg = -side * settings.foldDeg * k;
+    const turn = -side * deg;
     const tx = (s < 0 ? hinge - paneW : hinge).toFixed(2);
-    el.style.transform = Math.abs(deg) < 0.01
+    el.style.transform = Math.abs(turn) < 0.01
       ? `translate(${tx}px,0)`
-      : `translate3d(${tx}px,0,0) rotateY(${deg.toFixed(3)}deg)`;
+      : `translate3d(${tx}px,0,0) rotateY(${turn.toFixed(3)}deg)`;
     el.style.transformOrigin = s < 0 ? '100% 50%' : '0% 50%';
+    // the last sliver of an almost-edge-on panel is a hairline; fade it out
+    el.style.opacity = Math.abs(s) <= 1.5 ? '1'
+      : Math.max(0, 1 - (Math.abs(s) - 1.5) / 0.5).toFixed(3);
     el.style.width = paneW + 'px';
     el.style.height = H + 'px';
     el.classList.toggle('clickable', j !== slideIdx || hasNext());
 
     const inner = el.firstElementChild;
     const isCentre = j === slideIdx;
-    inner.style.transform = `translateY(${isCentre ? lift.toFixed(2) : 0}px)`;
+    // the outer edge is the anchor: for a left wing that is its left side
+    inner.style.transformOrigin = s < 0 ? '0% 50%' : '100% 50%';
+    inner.style.transform =
+      `scaleX(${(1 - shut).toFixed(4)}) translateY(${isCentre ? lift.toFixed(2) : 0}px)`;
 
     /* Light falls off toward the far edge of a folded panel — a flat dim
      * would read as a faded thumbnail rather than a panel turned away. */
@@ -535,8 +551,8 @@ requestAnimationFrame(frame);
  * video travels with the slide through a rotation and gets clipped by the
  * divider exactly like the picture under it. */
 function syncMedia(inner, pageIdx, box, live) {
-  // site embeds are hoisted to their own layer so they can load ahead of time
-  const want = (mediaByPage[pageIdx] || []).filter(m => m.kind !== 'site');
+  // anything in an iframe is hoisted to its own layer, to load ahead of time
+  const want = (mediaByPage[pageIdx] || []).filter(m => !HOSTED.has(m.kind));
   let holder = inner.querySelector('.vids');
 
   if (!want.length) { if (holder) holder.remove(); return; }
@@ -575,33 +591,6 @@ function syncMedia(inner, pageIdx, box, live) {
 }
 
 function makeMediaEl(m, live) {
-  if (m.kind === 'youtube' || m.kind === 'vimeo') {
-    // off-centre: nothing at all, so the slide's own poster frame shows through
-    if (!live || !settings.videoAuto) return document.createElement('div');
-
-    /* Unmuted autoplay only works once the page has been interacted with;
-     * without that, asking for sound means the clip never starts at all. */
-    const sound = soundOn && (navigator.userActivation?.hasBeenActive ?? true);
-
-    const f = document.createElement('iframe');
-    f.src = m.kind === 'youtube'
-      ? `https://www.youtube-nocookie.com/embed/${m.url}?` + new URLSearchParams({
-          autoplay: '1', mute: sound ? '0' : '1',
-          controls: '0', disablekb: '1', fs: '0', rel: '0',
-          modestbranding: '1', iv_load_policy: '3', playsinline: '1',
-          ...(settings.videoLoop ? { loop: '1', playlist: m.url } : {}),
-        })
-      : `https://player.vimeo.com/video/${m.url}?` + new URLSearchParams({
-          autoplay: '1', muted: sound ? '0' : '1', title: '0', byline: '0',
-          portrait: '0', controls: '0', ...(settings.videoLoop ? { loop: '1' } : {}),
-        });
-    f.className = 'player';
-    f.allow = 'autoplay; encrypted-media; picture-in-picture';
-    f.setAttribute('frameborder', '0');
-    f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-    return f;
-  }
-
   const v = document.createElement('video');
   v.src = m.url;
   v.playsInline = true;
@@ -621,7 +610,55 @@ function makeMediaEl(m, live) {
  * you arrive. */
 const embedFrames = new Map();     // page index → iframe
 
-const siteOn = (pageIdx) => (mediaByPage[pageIdx] || []).find(m => m.kind === 'site');
+/* Everything that is an iframe: a live page, and the hosted players — which
+ * belong here too, so they load ahead instead of on arrival. */
+const HOSTED = new Set(['site', 'youtube', 'vimeo']);
+const siteOn = (pageIdx) => (mediaByPage[pageIdx] || []).find(m => HOSTED.has(m.kind));
+
+function frameSrc(m) {
+  if (m.kind === 'site') return m.url;
+
+  /* autoplay is off on purpose: the frame is created while its slide is still
+   * a couple away, and is told to play only once you arrive. */
+  const sound = soundOn && (navigator.userActivation?.hasBeenActive ?? true);
+  if (m.kind === 'youtube') {
+    return `https://www.youtube-nocookie.com/embed/${m.url}?` + new URLSearchParams({
+      autoplay: '0', mute: sound ? '0' : '1', enablejsapi: '1',
+      controls: '0', disablekb: '1', fs: '0', rel: '0',
+      modestbranding: '1', iv_load_policy: '3', playsinline: '1',
+      ...(settings.videoLoop ? { loop: '1', playlist: m.url } : {}),
+    });
+  }
+  return `https://player.vimeo.com/video/${m.url}?` + new URLSearchParams({
+    autoplay: '0', muted: sound ? '0' : '1', title: '0', byline: '0',
+    portrait: '0', controls: '0', ...(settings.videoLoop ? { loop: '1' } : {}),
+  });
+}
+
+/** Drive a hosted player over postMessage — no third-party script needed. */
+function command(frame, what) {
+  const target = frame.contentWindow;
+  if (!target) return;
+  if (frame.dataset.kind === 'vimeo') {
+    target.postMessage(JSON.stringify({ method: what === 'play' ? 'play' : 'pause' }), '*');
+    return;
+  }
+  target.postMessage(JSON.stringify({
+    event: 'command', func: what === 'play' ? 'playVideo' : 'pauseVideo', args: [],
+  }), '*');
+}
+
+/* A player ignores commands until it is ready, and there is no reliable ready
+ * signal without loading its API script — so ask a few times over a second. */
+function startHosted(frame) {
+  let tries = 0;
+  const nudge = () => {
+    if (frame.dataset.playing !== '1' || !frame.isConnected) return;
+    command(frame, 'play');
+    if (++tries < 8) setTimeout(nudge, 150);
+  };
+  nudge();
+}
 
 function syncEmbedLayer(box) {
   const radius = clamp(Number(settings.embedPreload) || 0, 0, 99);
@@ -637,9 +674,10 @@ function syncEmbedLayer(box) {
 
     if (near && !frame) {
       frame = document.createElement('iframe');
-      frame.className = 'site';
-      frame.src = site.url;
-      frame.allow = 'autoplay; clipboard-write; fullscreen';
+      frame.className = site.kind === 'site' ? 'site' : 'player';
+      frame.dataset.kind = site.kind;
+      frame.src = frameSrc(site);
+      frame.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture';
       frame.setAttribute('frameborder', '0');
       frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
       embedLayer.appendChild(frame);
@@ -651,13 +689,22 @@ function syncEmbedLayer(box) {
       continue;
     }
     if (!frame) continue;
-    if (frame.dataset.url !== site.url) { frame.dataset.url = site.url; frame.src = site.url; }
+
+    const src = frameSrc(site);
+    if (frame.dataset.url !== src) { frame.dataset.url = src; frame.src = src; }
 
     /* Every frame is laid out at the size it will have in the centre, whether
      * or not it is showing — a page that loads at 0×0 reflows the moment you
      * reveal it, which is the flash we are trying to avoid. */
-    const zoom = clamp(Number(settings.embedZoom) || 1, 1, 4);
+    const zoom = site.kind === 'site' ? clamp(Number(settings.embedZoom) || 1, 1, 4) : 1;
     const live = page === current && !rotating;
+
+    // a player is loaded well before its slide but must not start early
+    if (site.kind !== 'site' && live !== (frame.dataset.playing === '1')) {
+      frame.dataset.playing = live ? '1' : '0';
+      if (live && settings.videoAuto) startHosted(frame);
+      else command(frame, 'pause');
+    }
     frame.style.cssText =
       `left:${(box.left + site.x * box.w).toFixed(1)}px;` +
       `top:${(box.top + site.y * box.h).toFixed(1)}px;` +
@@ -711,6 +758,9 @@ function toggleSound() {
   for (const el of panesEl.querySelectorAll('video')) el.muted = !soundOn;
   // hosted players carry mute in their URL; drop them and let them rebuild
   for (const f of panesEl.querySelectorAll('.vids')) f.dataset.stamp = '';
+  for (const [page, frame] of embedFrames) {
+    if (frame.dataset.kind !== 'site') { frame.remove(); embedFrames.delete(page); }
+  }
   dirty = true;
 }
 
@@ -1246,19 +1296,52 @@ async function openTalk(base) {
     // the version is the deck's content hash, so a re-published deck can never
     // come out of a browser cache still holding the old slides
     const deckUrl = at(talk.pdf || 'deck.pdf') + (talk.version ? `?v=${talk.version}` : '');
-    const pdf = await fetch(deckUrl);
-    if (!pdf.ok) throw new Error(`the deck is missing (${pdf.status})`);
-    await loadPdf({ data: new Uint8Array(await pdf.arrayBuffer()) }, talk.title || 'talk');
+    const fresh = params.get('fresh') === '0' ? null : await freshFromGoogle(talk);
 
-    await attachDeck({
-      slideCount: talk.slideCount ?? (talk.media || []).length,
-      media: (talk.media || []).map(list => list.map(m => ({ ...m }))),
-      blanks: talk.blanks || [],
-    }, talk.title || 'talk');
+    if (fresh) {
+      await loadPdf({ data: new Uint8Array(fresh.pdf) }, talk.title || 'talk');
+      await attachPptx(fresh.pptx, talk.title || 'talk');
+    } else {
+      const pdf = await fetch(deckUrl);
+      if (!pdf.ok) throw new Error(`the deck is missing (${pdf.status})`);
+      await loadPdf({ data: new Uint8Array(await pdf.arrayBuffer()) }, talk.title || 'talk');
+      await attachDeck({
+        slideCount: talk.slideCount ?? (talk.media || []).length,
+        media: (talk.media || []).map(list => list.map(m => ({ ...m }))),
+        blanks: talk.blanks || [],
+      }, talk.title || 'talk');
+    }
 
     if (talk.title) document.title = talk.title + ' — Triptych';
   } catch (err) {
     reportLoadError(err);
+  }
+}
+
+/* Google's export endpoints send CORS headers, so a talk published from Google
+ * Slides can check for a newer deck as it opens — no server, no re-publish. It
+ * is strictly best-effort: on a slow or hostile network the published snapshot
+ * is used instead, which is the copy that has to work when the wifi doesn't.
+ * `?fresh=0` skips the check outright. */
+const FRESH_TIMEOUT = 9000;
+
+async function freshFromGoogle(talk) {
+  if (talk.source?.kind !== 'gslides' || !talk.source.id) return null;
+  const base = `https://docs.google.com/presentation/d/${talk.source.id}/export/`;
+  $('loadTitle').textContent = 'Checking Google Slides…';
+
+  const grab = (fmt) => fetch(base + fmt, { cache: 'no-store', mode: 'cors' })
+    .then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))));
+
+  try {
+    const [pdf, pptx] = await withTimeout(
+      Promise.all([grab('pdf'), grab('pptx')]), FRESH_TIMEOUT, 'slow');
+    if (!pdf.byteLength) return null;
+    console.log('[triptych] using the current deck from Google Slides');
+    return { pdf, pptx };
+  } catch (err) {
+    console.log(`[triptych] keeping the published deck (${err.message})`);
+    return null;
   }
 }
 
