@@ -374,19 +374,27 @@ function solveLength(hingeX, hingeZ, dir, rad, target, W, P) {
   return (lo + hi) / 2;
 }
 
-/* Walk the chain out from one joint, which stays at the back of the fold. It is
- * the trailing edge of the panel that is becoming the left wing — the right
- * divider at rest, the left divider by the time the rotation lands, which is
- * what keeps the two ends of a rotation continuous. */
+/* Walk the chain out from one joint, which stays at the back of the fold.
+ *
+ * It has to be a joint that sits at the back in the resting pose — one of the
+ * two dividers — and that moves one seat over the course of a rotation, in
+ * whichever direction you are going. Going forward it is the trailing edge of
+ * the panel becoming the left wing, travelling from the right divider to the
+ * left. Going back it is that panel's leading edge, travelling the other way.
+ * The two rules meet at rest, where the centre panel is flat and both dividers
+ * are at the back, which is what makes a rotation and its reverse the same
+ * animation played each way. */
 function buildChain(W, offset) {
   const P = settings.depth * W;
   const slotOf = (n) => n - offset;
   const base = geomAt(slotOf(0), W);
-  const joint = base.x + base.w;
+  const back = offset < 0;
+  const joint = back ? base.x : base.x + base.w;
+  const firstRight = back ? 0 : 1;      // the lowest panel that extends rightward
   const panels = new Map();
 
   let x = joint, z = 0;
-  for (let n = 0; n >= -2; n--) {
+  for (let n = firstRight - 1; n >= -2; n--) {
     const s = slotOf(n), deg = tiltAt(s), rad = deg * Math.PI / 180;
     const L = solveLength(x, z, -1, rad, geomAt(s, W).x, W, P);
     panels.set(n, { x, z, L, deg, dir: -1, s });
@@ -395,7 +403,7 @@ function buildChain(W, offset) {
   }
 
   x = joint; z = 0;
-  for (let n = 1; n <= 2; n++) {
+  for (let n = firstRight; n <= 2; n++) {
     const s = slotOf(n), deg = tiltAt(s), rad = deg * Math.PI / 180;
     const g = geomAt(s, W);
     const L = solveLength(x, z, 1, rad, g.x + g.w, W, P);
