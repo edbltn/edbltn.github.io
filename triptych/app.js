@@ -30,7 +30,6 @@ const DEFAULTS = {
   rotateMs: 620,
   stepMs: 220,
   stepStyle: 'crossfade',
-  gutter: 10,
   bg: '#0d0e10',
   videoAuto: true,
   videoLoop: false,
@@ -343,27 +342,69 @@ function geomAt(s, W) {
   return { x: lerp(a.x, b.x, t), w: lerp(a.w, b.w, t) };
 }
 
-/* The wings fold *toward* the viewer, the way an altarpiece opens out, so the
- * outer edge is the near one — wider and taller than the seam.
+/* The panels are one folding screen, not three loose flaps.
  *
- * How wide must a panel be, unfolded, for its outer edge to project exactly
- * onto `outer`? A point d along the panel sits at z = +d·sin θ, so its screen x
- * is cx + (hinge + side·d·cos θ − cx) · P/(P − d·sin θ). That grows without
- * bound as the panel reaches the camera plane, so bisect below it. */
-function flapWidth(hinge, outer, side, theta, W, P) {
-  const cx = W / 2;
-  const cos = Math.cos(theta), sin = Math.sin(theta);
-  const at = (d) => cx + (hinge + side * d * cos - cx) * P / (P - d * sin);
-  let lo = 0, hi = Math.min(W * 6, sin > 1e-6 ? 0.82 * P / sin : W * 6);
-  for (let i = 0; i < 28; i++) {
+ * Each is hinged to its neighbours, and a joint is a single point in space —
+ * so the two panels meeting there share an edge exactly: same place, and the
+ * same height once perspective has had its way with it. That only works if the
+ * chain is built in 3D, carrying depth from joint to joint, which is what this
+ * does. The dividers still decide the apportionment: each panel's length is
+ * solved so that its far edge lands on its section boundary once projected.
+ *
+ * The fold opens toward the viewer, so the outer edges are the near, tall ones,
+ * and a panel on its way out closes as its neighbour arrives in its place.
+ */
+
+const tiltAt = (s) =>
+  settings.foldDeg * clamp(Math.abs(s), 0, 1) + SHUT_TURN * clamp(Math.abs(s) - 1, 0, 1);
+
+/** How long must a panel be for its far edge to project onto `target`? */
+function solveLength(hingeX, hingeZ, dir, rad, target, W, P) {
+  const cx = W / 2, cos = Math.cos(rad), sin = Math.sin(rad);
+  const at = (d) => {
+    const z = hingeZ + d * sin;
+    return cx + (hingeX + dir * d * cos - cx) * P / (P - z);
+  };
+  let lo = 0, hi = sin > 1e-6 ? 0.82 * (P - hingeZ) / sin : W * 6;
+  for (let i = 0; i < 32; i++) {
     const mid = (lo + hi) / 2;
-    const short = side < 0 ? at(mid) > outer : at(mid) < outer;
+    const short = dir < 0 ? at(mid) > target : at(mid) < target;
     if (short) lo = mid; else hi = mid;
   }
   return (lo + hi) / 2;
 }
 
+/* Walk the chain out from one joint, which stays at the back of the fold. It is
+ * the trailing edge of the panel that is becoming the left wing — the right
+ * divider at rest, the left divider by the time the rotation lands, which is
+ * what keeps the two ends of a rotation continuous. */
+function buildChain(W, offset) {
+  const P = settings.depth * W;
+  const slotOf = (n) => n - offset;
+  const base = geomAt(slotOf(0), W);
+  const joint = base.x + base.w;
+  const panels = new Map();
 
+  let x = joint, z = 0;
+  for (let n = 0; n >= -2; n--) {
+    const s = slotOf(n), deg = tiltAt(s), rad = deg * Math.PI / 180;
+    const L = solveLength(x, z, -1, rad, geomAt(s, W).x, W, P);
+    panels.set(n, { x, z, L, deg, dir: -1, s });
+    x -= L * Math.cos(rad);
+    z += L * Math.sin(rad);
+  }
+
+  x = joint; z = 0;
+  for (let n = 1; n <= 2; n++) {
+    const s = slotOf(n), deg = tiltAt(s), rad = deg * Math.PI / 180;
+    const g = geomAt(s, W);
+    const L = solveLength(x, z, 1, rad, g.x + g.w, W, P);
+    panels.set(n, { x, z, L, deg: -deg, dir: 1, s });
+    x += L * Math.cos(rad);
+    z += L * Math.sin(rad);
+  }
+  return panels;
+}
 
 /* ═══════════════════════════ pane pool ═══════════════════════════ */
 
@@ -403,8 +444,6 @@ function pageOfSlide(j) {
 function render() {
   if (!pages.length) return;
   const W = stage.clientWidth, H = stage.clientHeight;
-  const g = settings.gutter;
-
   let offset = 0, blend = 0, underUrl = '', lift = 0;
   if (anim) {
     const t = clamp((performance.now() - anim.t0) / anim.dur, 0, 1);
@@ -420,6 +459,8 @@ function render() {
 
   panesEl.style.perspective = (settings.depth * W).toFixed(0) + 'px';
 
+  const chain = buildChain(W, offset);
+
   let centreBox = null;
   const live = new Set();
   for (let j = slideIdx - 2; j <= slideIdx + 2; j++) {
@@ -429,43 +470,17 @@ function render() {
     live.add(j);
 
     const el = acquirePane(j);
-    const { x, w } = geomAt(s, W);
+    const panel = chain.get(j - slideIdx);
     const k = clamp(Math.abs(s), 0, 1);
-    const gap = w > g ? g : 0;          // a panel narrower than the gutter keeps its width
-    const sectionX = x + gap / 2;
-    const sectionW = Math.max(0, w - gap);
+    const paneW = panel.L;
 
-    /* The wings are hinged flaps: each is rotated about the edge it shares
-     * with the centre, so perspective turns it into a trapezoid. `flapWidth`
-     * works out how wide the *unfolded* panel has to be for its far edge to
-     * land exactly on the section boundary — otherwise folding one back would
-     * pull it away from the divider you placed. */
-    const side = s < 0 ? -1 : 1;
-    const hinge = s < 0 ? sectionX + sectionW : sectionX;
-    const outer = s < 0 ? sectionX : sectionX + sectionW;
-
-    /* Up to the wing, the panel is sized to fill its section at the fold angle.
-     * Past it, the panel leaves by closing against its *outer* edge: that edge
-     * stays where it is — the near, tall one — while everything sweeps outward
-     * into it and the panel narrows to nothing. The squeeze is applied to the
-     * contents (below) rather than the box, so the fold it is already sitting
-     * in carries through the exit. */
-    const shut = clamp(Math.abs(s) - 1, 0, 1);
-    const deg = settings.foldDeg * k + SHUT_TURN * shut;
-    const rad = deg * Math.PI / 180;
-    const paneW = rad > 1e-4
-      ? flapWidth(hinge, outer, side, rad, W, settings.depth * W)
-      : sectionW;
-
-    /* An unfolded pane stays a plain 2D layer: Chrome will not composite an
-     * iframe (a YouTube player, say) inside a 3D-transformed ancestor, and the
-     * centre pane is exactly where those live. */
-    const turn = -side * deg;
-    const tx = (s < 0 ? hinge - paneW : hinge).toFixed(2);
-    el.style.transform = Math.abs(turn) < 0.01
-      ? `translate(${tx}px,0)`
-      : `translate3d(${tx}px,0,0) rotateY(${turn.toFixed(3)}deg)`;
-    el.style.transformOrigin = s < 0 ? '100% 50%' : '0% 50%';
+    /* The panel hangs off its hinge, at that joint's depth. Its neighbour hangs
+     * off the very same point, which is what makes the two read as attached. */
+    const tx = panel.dir < 0 ? panel.x - paneW : panel.x;
+    el.style.transformOrigin = panel.dir < 0 ? '100% 50%' : '0% 50%';
+    el.style.transform =
+      `translate3d(${tx.toFixed(2)}px,0,${panel.z.toFixed(2)}px) ` +
+      `rotateY(${panel.deg.toFixed(3)}deg)`;
     el.style.width = paneW + 'px';
     el.style.height = H + 'px';
     el.classList.toggle('clickable', j !== slideIdx || hasNext());
@@ -489,7 +504,7 @@ function render() {
      * a rotation grows a clipped wing into a whole slide. */
     const aspect = p.w / p.h;
     const shrink = lerp(1, settings.sideScale, k);
-    const centreH = Math.min(H, Math.max(1, anchor(0, W).w - g) / aspect);
+    const centreH = Math.min(H, Math.max(1, anchor(0, W).w) / aspect);
 
     /* 'fill': the slide covers the whole flap, at the centre's height — so the
      *   two meet at the same height along the hinge and the fold reads as one
@@ -515,9 +530,7 @@ function render() {
     syncMedia(inner, pageOfSlide(j), box, isCentre && !(anim && anim.kind === 'rotate'));
 
     // the embed layer sits outside the panes, so it needs stage coordinates
-    if (isCentre) {
-      centreBox = { ...box, left: box.left + (s < 0 ? hinge - paneW : hinge) };
-    }
+    if (isCentre) centreBox = { ...box, left: box.left + tx };
     if (isCentre && underUrl) {
       setLayer(under, underUrl);
       under.style.opacity = '1';
@@ -904,6 +917,8 @@ async function attachDeck(deck, name) {
   buildInspector();       // the summary counts video, which only exists now
   if (DEBUG) {
     window.__triptych = {
+      chain: (offset = 0) => [...buildChain(stage.clientWidth, offset).entries()]
+        .sort((a, b) => a[0] - b[0]),
       get media() { return mediaByPage.map((m, i) => ({ page: i + 1, items: m })); },
       get slides() { return slides; },
       get config() { return embedConfig; },
@@ -1147,7 +1162,6 @@ const syncers = [
   bind('setRotateMs', 'rotateMs', 'outRotateMs', v => v + 'ms'),
   bind('setStepMs', 'stepMs', 'outStepMs', v => v + 'ms'),
   bind('setStepStyle', 'stepStyle'),
-  bind('setGutter', 'gutter', 'outGutter', v => v + 'px'),
   bind('setBg', 'bg'),
   bind('setThreshold', 'threshold', 'outThreshold', v => Number(v).toFixed(3)),
   bind('setVideoAuto', 'videoAuto'),
