@@ -311,7 +311,7 @@ const currentPage = () => (slides[slideIdx] || [0])[stepIdx] ?? 0;
 
 /* ═══════════════════════════ geometry ═══════════════════════════ */
 
-const SHUT_TURN = 22;     // extra degrees a panel turns as it closes on its way out
+const SHUT_TURN = 22;     // extra degrees a closing panel turns out toward the viewer
 
 /* Anchor rects for the slots a pane can occupy. Slot 0 is the centre;
  * ±1 are the wings; ±2 sit just off-stage, which is what makes a rotation
@@ -321,6 +321,26 @@ function anchor(slot, W) {
   if (slot <= -1) return { x: 0, w: fl * W };
   if (slot >= 1) return { x: (fl + fc) * W, w: fr * W };
   return { x: fl * W, w: fc * W };
+}
+
+/* The panels are a chain, not three loose flaps. Past a wing, a panel keeps its
+ * inner edge stitched to the outer edge of the panel ahead of it — the one
+ * taking its place — while its own outer edge stays pinned to the edge of the
+ * stage. So it closes as its neighbour slides across, and reaches nothing
+ * exactly as that neighbour arrives. */
+function geomAt(s, W) {
+  const c = clamp(s, -2, 2);
+  if (c <= -1) {
+    return { x: 0, w: Math.max(0, geomAt(c + 1, W).x) };
+  }
+  if (c >= 1) {
+    const ahead = geomAt(c - 1, W);
+    const left = ahead.x + ahead.w;
+    return { x: left, w: Math.max(0, W - left) };
+  }
+  const lo = Math.floor(c), hi = Math.ceil(c), t = c - lo;
+  const a = anchor(lo, W), b = anchor(hi, W);
+  return { x: lerp(a.x, b.x, t), w: lerp(a.w, b.w, t) };
 }
 
 /* The wings fold *toward* the viewer, the way an altarpiece opens out, so the
@@ -343,15 +363,7 @@ function flapWidth(hinge, outer, side, theta, W, P) {
   return (lo + hi) / 2;
 }
 
-function geomAt(s, W) {
-  // Beyond a wing a panel stops travelling: it stays in the wing's section and
-  // keeps folding instead, so it swings shut on its hinge rather than sliding
-  // off the stage.
-  const c = clamp(s, -1, 1);
-  const lo = Math.floor(c), hi = Math.ceil(c), t = c - lo;
-  const a = anchor(lo, W), b = anchor(hi, W);
-  return { x: lerp(a.x, b.x, t), w: lerp(a.w, b.w, t) };
-}
+
 
 /* ═══════════════════════════ pane pool ═══════════════════════════ */
 
@@ -419,8 +431,9 @@ function render() {
     const el = acquirePane(j);
     const { x, w } = geomAt(s, W);
     const k = clamp(Math.abs(s), 0, 1);
-    const sectionX = x + g / 2;
-    const sectionW = Math.max(0, w - g);
+    const gap = w > g ? g : 0;          // a panel narrower than the gutter keeps its width
+    const sectionX = x + gap / 2;
+    const sectionW = Math.max(0, w - gap);
 
     /* The wings are hinged flaps: each is rotated about the edge it shares
      * with the centre, so perspective turns it into a trapezoid. `flapWidth`
@@ -438,10 +451,10 @@ function render() {
      * contents (below) rather than the box, so the fold it is already sitting
      * in carries through the exit. */
     const shut = clamp(Math.abs(s) - 1, 0, 1);
-    const fillRad = (settings.foldDeg * Math.PI / 180) * k;
     const deg = settings.foldDeg * k + SHUT_TURN * shut;
-    const paneW = fillRad > 1e-4
-      ? flapWidth(hinge, outer, side, fillRad, W, settings.depth * W)
+    const rad = deg * Math.PI / 180;
+    const paneW = rad > 1e-4
+      ? flapWidth(hinge, outer, side, rad, W, settings.depth * W)
       : sectionW;
 
     /* An unfolded pane stays a plain 2D layer: Chrome will not composite an
@@ -453,19 +466,13 @@ function render() {
       ? `translate(${tx}px,0)`
       : `translate3d(${tx}px,0,0) rotateY(${turn.toFixed(3)}deg)`;
     el.style.transformOrigin = s < 0 ? '100% 50%' : '0% 50%';
-    // the last sliver of an almost-edge-on panel is a hairline; fade it out
-    el.style.opacity = Math.abs(s) <= 1.5 ? '1'
-      : Math.max(0, 1 - (Math.abs(s) - 1.5) / 0.5).toFixed(3);
     el.style.width = paneW + 'px';
     el.style.height = H + 'px';
     el.classList.toggle('clickable', j !== slideIdx || hasNext());
 
     const inner = el.firstElementChild;
     const isCentre = j === slideIdx;
-    // the outer edge is the anchor: for a left wing that is its left side
-    inner.style.transformOrigin = s < 0 ? '0% 50%' : '100% 50%';
-    inner.style.transform =
-      `scaleX(${(1 - shut).toFixed(4)}) translateY(${isCentre ? lift.toFixed(2) : 0}px)`;
+    inner.style.transform = `translateY(${isCentre ? lift.toFixed(2) : 0}px)`;
 
     /* Light falls off toward the far edge of a folded panel — a flat dim
      * would read as a faded thumbnail rather than a panel turned away. */
