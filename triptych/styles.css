@@ -140,31 +140,18 @@ body.dragging-divider { cursor: col-resize; user-select: none; }
   justify-content: center;
   background: var(--bg);
 }
-.dropzone.dragover { background: #121418; box-shadow: inset 0 0 0 2px var(--accent); }
+.dropzone.dragover { box-shadow: inset 0 0 0 2px var(--accent); }
 
-.dz-card { text-align: center; max-width: 460px; padding: 24px; }
-.dz-title {
-  font-size: 28px; letter-spacing: 0.28em; text-transform: uppercase;
-  margin-bottom: 14px;
-}
-.dz-sub { color: var(--dim); margin: 0 0 26px; }
-.link { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
-.dz-url { display: flex; gap: 6px; margin: 0 0 22px; }
-.dz-url input {
+.ask { display: flex; align-items: baseline; gap: 12px; width: min(620px, 82vw); }
+.ask label { flex: none; color: var(--dim); white-space: nowrap; }
+.ask input {
   flex: 1; min-width: 0;
-  background: #101216; color: var(--ink);
-  border: 1px solid var(--line); border-radius: 4px;
-  padding: 7px 9px; font: inherit; font-size: 12px;
+  background: none; border: none;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink); font: inherit; padding: 4px 0;
 }
-.dz-url input:focus { outline: none; border-color: var(--accent); }
-.dz-url button {
-  background: none; border: 1px solid var(--line); border-radius: 4px;
-  color: var(--dim); padding: 7px 12px; font: inherit; font-size: 12px; cursor: pointer;
-}
-.dz-url button:hover { color: var(--ink); border-color: var(--accent); }
-
-.dz-legend { color: var(--dim); font-size: 11px; display: grid; gap: 5px; }
-.dz-legend b { color: var(--ink); font-weight: 500; }
+.ask input:focus { outline: none; border-bottom-color: var(--accent); }
+.ask-error { color: #e06c6c; font-size: 12px; margin: 14px 0 0; max-width: min(620px, 82vw); }
 
 .load-card { width: min(420px, 70vw); text-align: center; }
 .load-title { margin-bottom: 12px; }
@@ -237,54 +224,120 @@ button.wide {
 }
 button.wide:hover { border-color: var(--accent); }
 
-/* ───────────────────────── filmstrip ───────────────────────── */
+/* ───────────────────────── timeline ───────────────────────── */
 
-.filmstrip { display: flex; flex-direction: column; gap: 0; }
-
-.fs-slide {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 8px;
-  margin: 6px 0;
-  background: #101216;
+.timeline {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 45;
+  background: linear-gradient(to top, rgba(13,14,16,0.97) 70%, rgba(13,14,16,0));
+  padding: 26px 0 18px;
 }
-.fs-slide.current { border-color: var(--accent); }
-.fs-slide-head {
-  display: flex; align-items: baseline; gap: 8px;
-  font-size: 11px; color: var(--dim); margin-bottom: 8px;
-}
-.fs-slide-head b { color: var(--ink); font-weight: 600; }
 
-.fs-steps { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.fs-thumb {
+.strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 18px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.strip::-webkit-scrollbar { height: 6px; }
+.strip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.slot {
   position: relative;
-  width: 104px;
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+}
+.slot .cards { position: relative; display: flex; }
+
+.card {
+  position: relative;
+  width: 132px;
+  flex: none;
   border: 1px solid var(--line);
   background: #000;
-  cursor: pointer;
   line-height: 0;
+  cursor: grab;
+  transition: border-color 120ms ease, transform 140ms ease;
 }
-.fs-thumb.current { border-color: var(--accent); }
-.fs-thumb img { width: 100%; display: block; }
-.fs-thumb span {
-  position: absolute; left: 2px; bottom: 2px;
-  font: 9px/1 ui-monospace, Menlo, monospace;
-  background: rgba(0,0,0,0.65); color: #ddd; padding: 2px 3px; border-radius: 2px;
+.card img { width: 100%; display: block; }
+.card:hover { border-color: var(--dim); }
+.card.current { border-color: var(--accent); }
+.card.dragging { opacity: 0.35; }
+
+/* steps of one slide sit as a stack, offset just enough to read as a pile */
+.card + .card { margin-left: -114px; }
+.card + .card { box-shadow: -6px 0 12px rgba(0,0,0,0.6); }
+
+.card b {
+  position: absolute; right: 3px; bottom: 3px;
+  font: 9px/1 ui-monospace, Menlo, monospace; font-weight: 400;
+  background: rgba(0,0,0,0.7); color: #ccc; padding: 2px 4px; border-radius: 2px;
 }
 
-.junction {
-  display: flex; align-items: center; gap: 8px;
-  margin: 2px 0 2px 6px;
-  font-size: 11px;
+.slot.target > .cards > .card { border-color: var(--accent); }
+.slot.has-embed .cards::after {
+  content: "";
+  position: absolute; left: 5px; top: 5px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
 }
-.junction button {
-  font: 10px/1 ui-monospace, Menlo, monospace;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 4px 7px; border-radius: 3px; cursor: pointer;
-  background: none; border: 1px solid var(--line); color: var(--dim);
+
+.gap {
+  flex: none;
+  width: 16px;
+  align-self: stretch;
+  min-height: 74px;
+  border-radius: 3px;
 }
-.junction.build  button { color: #6fa8dc; border-color: rgba(111,168,220,0.45); }
-.junction.rotate button { color: var(--accent); border-color: rgba(201,162,39,0.45); }
-.junction button:hover { filter: brightness(1.35); }
-.junction .score { color: var(--dim); font-family: ui-monospace, Menlo, monospace; font-size: 10px; }
-.junction .manual { color: var(--accent); font-size: 10px; }
+.gap.target { background: rgba(201, 162, 39, 0.35); }
+
+.slot .embed {
+  position: absolute;
+  right: 4px; top: 4px;
+  width: 18px; height: 18px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(13,14,16,0.85);
+  color: var(--dim);
+  font: 12px/16px ui-sans-serif, system-ui, sans-serif;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  padding: 0;
+}
+.slot:hover .embed, .slot.has-embed .embed { opacity: 1; }
+.slot .embed:hover { color: var(--ink); border-color: var(--accent); }
+
+.embed-field {
+  position: absolute;
+  left: 0; bottom: calc(100% + 8px);
+  width: 340px;
+  display: flex;
+  z-index: 3;
+}
+.embed-field input {
+  flex: 1; min-width: 0;
+  background: #101216; color: var(--ink);
+  border: 1px solid var(--accent); border-radius: 3px;
+  padding: 6px 8px; font: inherit; font-size: 12px;
+}
+.embed-field input:focus { outline: none; }
+
+.ghost {
+  position: fixed;
+  z-index: 60;
+  width: 132px;
+  pointer-events: none;
+  opacity: 0.85;
+  border: 1px solid var(--accent);
+  line-height: 0;
+}
+.ghost img { width: 100%; display: block; }
+body.dragging-card { cursor: grabbing; user-select: none; }

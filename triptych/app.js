@@ -5,7 +5,8 @@
  *   within-slide the centre pane advances one build step; nothing moves.
  *
  * Which junction is which is inferred from the deck itself (see the grouping
- * section below) and can be overridden by hand in the structure inspector.
+ * section below); drag a card onto its neighbour in the timeline to say
+ * otherwise.
  *
  * A PDF export drops the deck's video. Hand it the .pptx as well and the video
  * comes back: pptx.js pulls the media parts and their placement out of the zip,
@@ -68,8 +69,10 @@ let pages = [];
 let junctions = [];
 /** @type {number[][]} slides[i] = array of page indices */
 let slides = [];
-/** @type {Record<number,'build'|'rotate'>} */
+/** @type {Record<number,'build'|'rotate'>} stacking set by hand, per junction */
 let overrides = {};
+/** @type {Record<number,string>} a web page laid over a page, keyed by page index */
+let deckEmbeds = {};
 let deckKey = null;
 let deckName = '';
 
@@ -180,9 +183,10 @@ async function loadPdf(source, name) {
   pages.forEach(p => { URL.revokeObjectURL(p.url); URL.revokeObjectURL(p.thumb); });
   pages = out;
 
-  deckKey = 'triptych:deck:' + hashString(deckName + ':' + n + ':' +
-    pages.map(p => p.tokens.size).join(','));
-  overrides = readJSON(deckKey) || {};
+  deckKey = 'triptych:deck:' + hashString(n + ':' + pages.map(p => p.tokens.size).join(','));
+  const saved = readJSON(deckKey) || {};
+  overrides = saved.overrides || (saved.embeds ? {} : saved);   // older decks stored bare
+  deckEmbeds = saved.embeds || {};
 
   for (const frame of embedFrames.values()) frame.remove();
   embedFrames.clear();
@@ -194,7 +198,8 @@ async function loadPdf(source, name) {
   $('loading').classList.add('hidden');
   document.title = deckName + ' — Triptych';
   dirty = true;
-  buildInspector();
+  buildTimeline();
+  $('timeline').classList.remove('hidden');   // arrange first, then present
 }
 
 function setLoadProgress(i, n) {
@@ -307,6 +312,8 @@ function regroup(keepPage) {
 }
 
 const currentPage = () => (slides[slideIdx] || [0])[stepIdx] ?? 0;
+
+const saveDeck = () => { if (deckKey) writeJSON(deckKey, { overrides, embeds: deckEmbeds }); };
 
 /* ═══════════════════════════ geometry ═══════════════════════════ */
 
@@ -797,6 +804,46 @@ function toggleSound() {
  * `embed: <url>` in its speaker notes has already been handled and is left be. */
 let lastBlanks = null;
 
+/* Where a live page comes from, most specific first:
+ *   1. dropped on that slide in the timeline
+ *   2. `embed: <url>` in the slide's speaker notes (handled in pptx.js)
+ *   3. that slide's number in embeds.json, or a published talk's talk.json
+ *   4. the blank-slide default  */
+function applyEmbeds(blanks) {
+  lastBlanks = blanks || lastBlanks;
+  if (!mediaByPage.length) return;
+
+  for (const list of mediaByPage) {
+    const keep = list.filter(m => !(m.kind === 'site' && m.placed));
+    list.length = 0;
+    list.push(...keep);
+  }
+
+  const inset = { x: 0.03, y: 0.04, w: 0.94, h: 0.92 };
+  const put = (page, url) => {
+    if (page == null || page < 0 || page >= mediaByPage.length) return;
+    if (mediaByPage[page].some(m => m.kind === 'site')) return;
+    mediaByPage[page].push({ url, kind: 'site', name: url, placed: true, ...inset });
+  };
+
+  for (const [page, url] of Object.entries(deckEmbeds)) put(Number(page), String(url).trim());
+
+  const fallback = settings.webEmbedBlank
+    ? (embedConfig.blank || settings.webEmbed || '').trim()
+    : '';
+  (lastBlanks || []).forEach((isBlank, i) => {
+    const url = (embedConfig.slides[String(i + 1)] || (isBlank ? fallback : '')).trim();
+    if (url) put(pageForSlide(i), url);
+  });
+
+  for (const [page, frame] of embedFrames) { frame.remove(); embedFrames.delete(page); }
+  playbackSig = '';
+}
+
+/** Which PDF page a PowerPoint slide index landed on. */
+let slideToPage = null;
+const pageForSlide = (i) => (slideToPage ? slideToPage[i] ?? null : null);
+
 let mediaCacheBase = '/';
 
 /** embeds.json, if it is there: per-slide pages and a default for blanks. */
@@ -815,33 +862,6 @@ async function loadEmbedConfig() {
     console.warn('[triptych] embeds.json is not valid JSON —', err.message);
   }
 }
-
-/* Where a live page comes from, most specific first:
- *   1. `embed: <url>` in the slide's own speaker notes (handled in pptx.js)
- *   2. that slide's number in embeds.json
- *   3. the blank-slide default — embeds.json, else the settings field  */
-function fillBlankSlides(blanks) {
-  lastBlanks = blanks || lastBlanks;
-  blanks = lastBlanks;
-  if (!blanks) return;
-
-  const fallback = settings.webEmbedBlank
-    ? (embedConfig.blank || settings.webEmbed || '').trim()
-    : '';
-  const inset = { x: 0.03, y: 0.04, w: 0.94, h: 0.92 };
-
-  blanks.forEach((isBlank, i) => {
-    const url = (embedConfig.slides[String(i + 1)] || (isBlank ? fallback : '')).trim();
-    if (!url) return;
-    const page = pageForSlide(i);
-    if (page === null || mediaByPage[page].some(m => m.kind === 'site')) return;
-    mediaByPage[page].push({ url, kind: 'site', name: url, fromBlank: true, ...inset });
-  });
-}
-
-/** Which PDF page a PowerPoint slide index landed on. */
-let slideToPage = null;
-const pageForSlide = (i) => (slideToPage ? slideToPage[i] ?? null : null);
 
 /* A hosted player brings its own chrome and its own rules. If serve.py has a
  * local copy of the clip (see "cache videos" in settings), play that instead:
@@ -876,7 +896,7 @@ async function cacheVideos(button) {
       return;
     }
   }
-  fillBlankSlides(deck.blanks);
+  applyEmbeds(deck.blanks);
   await useCachedVideos();
   playbackSig = '';
   for (const h of panesEl.querySelectorAll('.vids')) h.dataset.stamp = '';
@@ -914,7 +934,7 @@ async function attachDeck(deck, name) {
   }
   slideToPage.forEach((page, i) => { if (page !== null) mediaByPage[page] = byIndex[i]; });
 
-  fillBlankSlides(deck.blanks);
+  applyEmbeds(deck.blanks);
   await useCachedVideos();
 
   const total = mediaByPage.reduce((n, m) => n + m.length, 0);
@@ -922,7 +942,7 @@ async function attachDeck(deck, name) {
     `across ${deck.slideCount} slides`);
   playbackSig = '';
   dirty = true;
-  buildInspector();       // the summary counts video, which only exists now
+  buildTimeline();        // media can add an embed marker to a slide
   if (DEBUG) {
     window.__triptych = {
       chain: (offset = 0) => [...buildChain(stage.clientWidth, offset).entries()]
@@ -947,7 +967,7 @@ function commitAnim() {
     stepIdx = anim.dir > 0 ? 0 : stepsIn(slideIdx) - 1;
   }
   anim = null;
-  markCurrentInInspector();
+  markCurrentInTimeline();
 }
 
 function settle() { if (anim) commitAnim(); }
@@ -964,9 +984,9 @@ function startStep(dir) {
   settle();
   const from = pages[currentPage()].url;
   stepIdx += dir;
-  if (settings.stepMs <= 0) { anim = null; markCurrentInInspector(); dirty = true; return; }
+  if (settings.stepMs <= 0) { anim = null; markCurrentInTimeline(); dirty = true; return; }
   anim = { kind: 'step', from, dir, t0: performance.now(), dur: settings.stepMs };
-  markCurrentInInspector();
+  markCurrentInTimeline();
   dirty = true;
 }
 
@@ -991,7 +1011,7 @@ function goToPage(p) {
     const j = slides[i].indexOf(p);
     if (j >= 0) { slideIdx = i; stepIdx = j; break; }
   }
-  markCurrentInInspector();
+  markCurrentInTimeline();
   dirty = true;
 }
 
@@ -1052,82 +1072,218 @@ function resetPanes() {
   dirty = true;
 }
 
-/* ═══════════════════════════ inspector ═══════════════════════════ */
+/* ═══════════════════════════ timeline ═══════════════════════════ */
 
-function buildInspector() {
-  const strip = $('filmstrip');
-  strip.innerHTML = '';
+/* Every slide as a card, in order, left to right. Slides that share a stack are
+ * build steps: they hold the triptych still and change in place. Drag a card
+ * onto its neighbour to stack it; drag it into a gap to pull it back out. */
+
+const stripEl = () => $('strip');
+let dragging = null;
+
+function buildTimeline() {
+  const strip = stripEl();
+  strip.textContent = '';
   if (!pages.length) return;
 
   slides.forEach((group, i) => {
-    const box = document.createElement('div');
-    box.className = 'fs-slide';
-    box.dataset.slide = String(i);
-    box.innerHTML =
-      `<div class="fs-slide-head"><b>Slide ${i + 1}</b>` +
-      `<span>${group.length} step${group.length > 1 ? 's' : ''} · ` +
-      `page${group.length > 1 ? 's' : ''} ${group[0] + 1}${group.length > 1 ? '–' + (group[group.length - 1] + 1) : ''}</span></div>` +
-      `<div class="fs-steps"></div>`;
-    const steps = box.querySelector('.fs-steps');
-    group.forEach(p => {
-      const t = document.createElement('div');
-      t.className = 'fs-thumb';
-      t.dataset.page = String(p);
-      t.innerHTML = `<img src="${pages[p].thumb}" alt=""><span>${p + 1}</span>`;
-      t.addEventListener('click', () => goToPage(p));
-      steps.appendChild(t);
-    });
-    strip.appendChild(box);
+    strip.appendChild(gapEl(group[0]));
 
-    const last = group[group.length - 1];
-    if (last + 1 < pages.length) strip.appendChild(junctionRow(last));
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.slide = String(i);
+    slot.dataset.first = String(group[0]);
+    slot.dataset.last = String(group[group.length - 1]);
+
+    const cards = document.createElement('div');
+    cards.className = 'cards';
+    for (const page of group) cards.appendChild(cardEl(page, group.length));
+    slot.appendChild(cards);
+
+    const embed = document.createElement('button');
+    embed.className = 'embed';
+    embed.textContent = '⌘';
+    embed.title = deckEmbeds[group[0]] ? 'Change the web page on this slide'
+                                       : 'Put a web page on this slide';
+    embed.addEventListener('click', (e) => { e.stopPropagation(); askForEmbed(slot, group[0]); });
+    slot.appendChild(embed);
+
+    slot.classList.toggle('has-embed', !!deckEmbeds[group[0]]);
+    strip.appendChild(slot);
   });
 
-  const all = mediaByPage.flat();
-  const clips = all.filter(m => m.kind !== 'site').length;
-  const sites = all.length - clips;
-  $('inspectorSummary').textContent =
-    `${slides.length} slides · ${pages.length} pages · ` +
-    `${junctions.filter((_, k) => isBuild(k)).length} builds` +
-    (clips ? ` · ${clips} video` : '') +
-    (sites ? ` · ${sites} embed` : '');
-  $('inspectorNote').textContent = pptxNote;
-  $('inspectorNote').classList.toggle('hidden', !pptxNote);
-  markCurrentInInspector();
+  strip.appendChild(gapEl(pages.length));
+  markCurrentInTimeline();
 }
 
-function junctionRow(k) {
-  const j = junctions[k];
-  const build = isBuild(k);
-  const row = document.createElement('div');
-  row.className = 'junction ' + (build ? 'build' : 'rotate');
-  row.innerHTML =
-    `<button>${build ? 'build' : 'rotate'}</button>` +
-    `<span class="score">p${k + 1}→p${k + 2} · score ${j.score.toFixed(3)}` +
-    ` · vis ${j.visual.toFixed(2)}${j.subset ? ' · text-subset' : ''}${j.titleSame ? ' · same-title' : ''}</span>` +
-    (overrides[k] ? '<span class="manual">manual</span>' : '');
-  row.querySelector('button').addEventListener('click', () => {
-    overrides[k] = build ? 'rotate' : 'build';
-    if (overrides[k] === (autoIsBuild(k) ? 'build' : 'rotate')) delete overrides[k];
-    if (deckKey) writeJSON(deckKey, overrides);
-    regroup();
-    buildInspector();
-  });
-  return row;
+function cardEl(page, stackSize) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.page = String(page);
+  card.title = stackSize > 1
+    ? 'Drag into a gap to unstack'
+    : 'Drag onto the next slide to stack';
+  card.innerHTML = `<img src="${pages[page].thumb}" alt=""><b>${page + 1}</b>`;
+  card.addEventListener('click', () => { if (!dragging) goToPage(page); });
+  card.addEventListener('pointerdown', (e) => beginDrag(e, card, page));
+  return card;
 }
 
-function markCurrentInInspector() {
-  const strip = $('filmstrip');
-  if (!strip.children.length) return;
-  strip.querySelectorAll('.fs-slide').forEach(el =>
-    el.classList.toggle('current', Number(el.dataset.slide) === slideIdx));
-  const p = currentPage();
-  strip.querySelectorAll('.fs-thumb').forEach(el =>
-    el.classList.toggle('current', Number(el.dataset.page) === p));
-  const cur = strip.querySelector('.fs-slide.current');
-  if (cur && !$('inspector').classList.contains('hidden')) {
-    cur.scrollIntoView({ block: 'nearest' });
+function gapEl(before) {
+  const gap = document.createElement('div');
+  gap.className = 'gap';
+  gap.dataset.before = String(before);
+  return gap;
+}
+
+/* ───────── stacking ───────── */
+
+const setJunction = (k, how) => {
+  if (k < 0 || k >= junctions.length) return;
+  if ((autoIsBuild(k) ? 'build' : 'rotate') === how) delete overrides[k];
+  else overrides[k] = how;
+};
+
+function stackPages(page, onto) {
+  setJunction(Math.min(page, onto), 'build');
+  commitStacking(page);
+}
+
+function unstackPage(page) {
+  setJunction(page - 1, 'rotate');
+  setJunction(page, 'rotate');
+  commitStacking(page);
+}
+
+function commitStacking(keepPage) {
+  saveDeck();
+  regroup(keepPage);
+  applyEmbeds();
+  buildTimeline();
+  dirty = true;
+}
+
+/* ───────── dragging ───────── */
+
+function beginDrag(event, card, page) {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  const startX = event.clientX, startY = event.clientY;
+  card.setPointerCapture(event.pointerId);
+
+  const move = (e) => {
+    if (!dragging) {
+      if (Math.hypot(e.clientX - startX, e.clientY - startY) < 5) return;
+      const ghost = card.cloneNode(true);
+      ghost.className = 'ghost';
+      document.body.appendChild(ghost);
+      document.body.classList.add('dragging-card');
+      card.classList.add('dragging');
+      dragging = { page, card, ghost };
+    }
+    dragging.ghost.style.left = (e.clientX - 66) + 'px';
+    dragging.ghost.style.top = (e.clientY - 40) + 'px';
+    highlight(dropTarget(e.clientX, e.clientY, page));
+  };
+
+  const end = (e) => {
+    card.removeEventListener('pointermove', move);
+    card.removeEventListener('pointerup', end);
+    card.removeEventListener('pointercancel', end);
+    if (!dragging) return;
+
+    const target = dropTarget(e.clientX, e.clientY, page);
+    dragging.ghost.remove();
+    card.classList.remove('dragging');
+    document.body.classList.remove('dragging-card');
+    highlight(null);
+    dragging = null;
+
+    if (target?.kind === 'slot') stackPages(page, target.page);
+    else if (target?.kind === 'gap') unstackPage(page);
+  };
+
+  card.addEventListener('pointermove', move);
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+
+/* A page can only join the slide before or after it, because the deck's order
+ * is the deck's order. Anything else is not a target. */
+function dropTarget(x, y, page) {
+  const under = document.elementFromPoint(x, y);
+  if (!under) return null;
+
+  const slot = under.closest('.slot');
+  if (slot) {
+    const first = Number(slot.dataset.first), last = Number(slot.dataset.last);
+    if (page >= first && page <= last) return null;              // already here
+    if (page === last + 1 || page === first - 1) {
+      return { kind: 'slot', page: page === last + 1 ? last : first, el: slot };
+    }
+    return null;
   }
+
+  const gap = under.closest('.gap');
+  if (gap && slides[slideOfPage(page)]?.length > 1) {
+    const before = Number(gap.dataset.before);
+    if (before === page || before === page + 1) return { kind: 'gap', el: gap };
+  }
+  return null;
+}
+
+function highlight(target) {
+  for (const el of stripEl().querySelectorAll('.target')) el.classList.remove('target');
+  target?.el?.classList.add('target');
+}
+
+function markCurrentInTimeline() {
+  const strip = stripEl();
+  if (!strip.children.length) return;
+  const page = currentPage();
+  let active = null;
+  for (const card of strip.querySelectorAll('.card')) {
+    const on = Number(card.dataset.page) === page;
+    card.classList.toggle('current', on);
+    if (on) active = card;
+  }
+  if (active && !$('timeline').classList.contains('hidden')) {
+    active.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+}
+
+/* ───────── embeds ───────── */
+
+function askForEmbed(slot, page) {
+  slot.querySelector('.embed-field')?.remove();
+
+  const field = document.createElement('div');
+  field.className = 'embed-field';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.spellcheck = false;
+  input.placeholder = 'https://';
+  input.value = deckEmbeds[page] || '';
+  input.title = 'Enter to set, empty to remove';
+  field.appendChild(input);
+  slot.appendChild(field);
+  input.focus();
+  input.select();
+
+  const close = () => field.remove();
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Escape') close();
+    if (e.key !== 'Enter') return;
+    const url = input.value.trim();
+    if (url) deckEmbeds[page] = /^https?:\/\//.test(url) ? url : 'https://' + url;
+    else delete deckEmbeds[page];
+    saveDeck();
+    applyEmbeds();
+    buildTimeline();
+    dirty = true;
+  });
+  input.addEventListener('blur', close);
 }
 
 /* ═══════════════════════════ settings ui ═══════════════════════════ */
@@ -1155,7 +1311,7 @@ const bind = (id, key, out, fmt = (v) => v) => {
 
 function afterSettingChange(key) {
   if (key === 'bg') document.documentElement.style.setProperty('--bg', settings.bg);
-  if (key === 'threshold') { regroup(); buildInspector(); }
+  if (key === 'threshold') { regroup(); applyEmbeds(); buildTimeline(); }
   if (key === 'videoAuto' || key === 'videoLoop') playbackSig = '';
   if (key === 'webEmbed' || key === 'webEmbedBlank') refreshEmbedsSoon();
   if (key === 'embedZoom' || key === 'embedPreload') dirty = true;
@@ -1192,19 +1348,21 @@ if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
 }
 $('btnClearOverrides').addEventListener('click', () => {
   overrides = {};
-  if (deckKey) writeJSON(deckKey, overrides);
-  regroup();
-  buildInspector();
+  commitStacking(currentPage());
 });
 
 /* panels */
 function togglePanel(id) {
   const el = $(id);
-  const other = id === 'settings' ? 'inspector' : 'settings';
-  $(other).classList.add('hidden');
   el.classList.toggle('hidden');
-  if (id === 'inspector' && !el.classList.contains('hidden')) markCurrentInInspector();
   if (id === 'settings' && !el.classList.contains('hidden')) syncSettingsUI();
+}
+
+function toggleTimeline() {
+  const el = $('timeline');
+  el.classList.toggle('hidden');
+  if (!el.classList.contains('hidden')) markCurrentInTimeline();
+  dirty = true;
 }
 document.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => $(b.dataset.close).classList.add('hidden')));
@@ -1280,20 +1438,7 @@ const escapeHtml = (s) => s.replace(/[&<>"]/g, c =>
 
 const refreshEmbedsSoon = debounce(() => refreshEmbeds(), 700);
 
-/** Re-apply the blank-slide embed after the setting changes. */
-function refreshEmbeds() {
-  for (const list of mediaByPage) {
-    const keep = list.filter(m => !(m.kind === 'site' && m.fromBlank));
-    list.length = 0;
-    list.push(...keep);
-  }
-  fillBlankSlides(lastBlanks);
-  for (const frame of embedFrames.values()) frame.remove();
-  embedFrames.clear();
-  playbackSig = '';
-  for (const h of panesEl.querySelectorAll('.vids')) h.dataset.stamp = '';
-  dirty = true;
-}
+const refreshEmbeds = () => { applyEmbeds(); buildTimeline(); dirty = true; };
 
 /* ───────── a published talk ───────── */
 
@@ -1458,7 +1603,8 @@ window.addEventListener('keydown', (e) => {
 
   if (k === 'Escape') {
     $('settings').classList.add('hidden');
-    $('inspector').classList.add('hidden');
+    $('timeline').classList.add('hidden');
+    dirty = true;
     return;
   }
   if (!pages.length) return;
@@ -1472,7 +1618,7 @@ window.addEventListener('keydown', (e) => {
     case 'ArrowUp': e.preventDefault(); prevSlide(); break;
     case 'Home': e.preventDefault(); goToPage(0); break;
     case 'End': e.preventDefault(); goToPage(pages.length - 1); break;
-    case 'g': togglePanel('inspector'); break;
+    case 'g': toggleTimeline(); break;
     case 's': togglePanel('settings'); break;
     case 'o': $('fileInput').click(); break;
     case 'm': toggleSound(); break;
