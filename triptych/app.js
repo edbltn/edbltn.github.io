@@ -14,7 +14,7 @@
  */
 
 import * as pdfjsLib from './vendor/pdf.min.mjs';
-import { readPptx } from './pptx.js';
+import { readPptx } from './pptx.js?v=927a353a47';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL('./vendor/pdf.worker.min.mjs', import.meta.url).toString();
