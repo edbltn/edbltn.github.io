@@ -1448,6 +1448,14 @@ const refreshEmbedsSoon = debounce(() => refreshEmbeds(), 700);
 
 const refreshEmbeds = () => { applyEmbeds(); buildTimeline(); dirty = true; };
 
+/** A fetch that never settles reads as a frozen app; make it say so instead. */
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+}
+
 /* ───────── a published talk ───────── */
 
 /* On a static host there is no server to ask, so publish.py has already done
