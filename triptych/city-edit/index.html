@@ -18,13 +18,19 @@
   <div class="divider" id="divider1" data-index="1" title="Drag to resize · double-click to reset"><i></i></div>
 </div>
 
-<!-- ───────────────────────── entry ───────────────────────── -->
+<!-- ───────────────────────── setup ───────────────────────── -->
 <div id="dropzone" class="overlay dropzone">
-  <form id="gsForm" class="ask">
-    <label for="gsInput">Enter slide link:</label>
-    <input type="text" id="gsInput" spellcheck="false" autocomplete="off" autofocus />
-  </form>
-  <p class="ask-error hidden" id="askError"></p>
+  <div class="setup">
+    <form id="gsForm" class="ask">
+      <label for="gsInput">Enter slide link:</label>
+      <input type="text" id="gsInput" spellcheck="false" autocomplete="off" autofocus />
+    </form>
+    <p class="ask-error hidden" id="askError"></p>
+    <div id="timeline" class="timeline hidden">
+      <div id="strip" class="strip"></div>
+    </div>
+    <nav id="talks" class="talks"></nav>
+  </div>
   <input type="file" id="fileInput" accept=".pdf,.pptx,application/pdf" multiple hidden />
 </div>
 
@@ -34,11 +40,6 @@
     <div class="load-bar"><div id="loadFill" class="load-fill"></div></div>
     <div class="load-sub mono" id="loadSub"></div>
   </div>
-</div>
-
-<!-- ───────────────────────── timeline ───────────────────────── -->
-<div id="timeline" class="timeline hidden">
-  <div id="strip" class="strip"></div>
 </div>
 
 <!-- ───────────────────────── settings ───────────────────────── -->
@@ -143,6 +144,17 @@
 
   </div>
 </aside>
+
+<script>
+  // If the module fails to boot, say so — a dead input field looks like nothing
+  // happening, which is the worst way for this to fail.
+  addEventListener('error', (event) => {
+    const note = document.getElementById('askError');
+    if (!note) return;
+    note.textContent = String(event.message || 'Triptych failed to start.');
+    note.classList.remove('hidden');
+  });
+</script>
 <script type="module" src="../app.js"></script>
 </body>
 </html>

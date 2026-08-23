@@ -3,37 +3,157 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Talks</title>
-<style>
-  :root { color-scheme: dark; }
-  body {
-    margin: 0; min-height: 100vh; background: #0d0e10; color: #e8e8ea;
-    font: 15px/1.6 ui-sans-serif, -apple-system, system-ui, sans-serif;
-    display: flex; align-items: center; justify-content: center; padding: 40px 20px;
-  }
-  main { width: min(560px, 100%); }
-  h1 {
-    font-size: 13px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
-    color: #8b8d93; margin: 0 0 28px;
-  }
-  ul { list-style: none; margin: 0; padding: 0; }
-  li { border-top: 1px solid #2a2c31; }
-  li:last-child { border-bottom: 1px solid #2a2c31; }
-  a {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
-    padding: 16px 2px; color: inherit; text-decoration: none;
-  }
-  a:hover { color: #c9a227; }
-  time { font: 11px ui-monospace, Menlo, monospace; color: #8b8d93; flex: none; }
-  p.none { color: #8b8d93; }
-</style>
+<title>Triptych</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<main>
-  <h1>Talks</h1>
-    <ul>
-    <li><a href="city-edit/"><span>City Edit — WordHack</span><time>2026-08-21</time></a></li>
-  </ul>
-</main>
+<div id="stage" class="stage">
+  <div id="panes" class="panes"></div>
+  <!-- live pages: outside the panes so they survive recycling, load ahead,
+       and are never inside a 3D-transformed ancestor -->
+  <div id="embeds" class="embeds"></div>
+
+  <div class="divider" id="divider0" data-index="0" title="Drag to resize · double-click to reset"><i></i></div>
+  <div class="divider" id="divider1" data-index="1" title="Drag to resize · double-click to reset"><i></i></div>
+</div>
+
+<!-- ───────────────────────── setup ───────────────────────── -->
+<div id="dropzone" class="overlay dropzone">
+  <div class="setup">
+    <form id="gsForm" class="ask">
+      <label for="gsInput">Enter slide link:</label>
+      <input type="text" id="gsInput" spellcheck="false" autocomplete="off" autofocus />
+    </form>
+    <p class="ask-error hidden" id="askError"></p>
+    <div id="timeline" class="timeline hidden">
+      <div id="strip" class="strip"></div>
+    </div>
+    <nav id="talks" class="talks"><a href="city-edit/">City Edit — WordHack</a></nav>
+  </div>
+  <input type="file" id="fileInput" accept=".pdf,.pptx,application/pdf" multiple hidden />
+</div>
+
+<div id="loading" class="overlay loading hidden">
+  <div class="load-card">
+    <div class="load-title" id="loadTitle">Loading</div>
+    <div class="load-bar"><div id="loadFill" class="load-fill"></div></div>
+    <div class="load-sub mono" id="loadSub"></div>
+  </div>
+</div>
+
+<!-- ───────────────────────── settings ───────────────────────── -->
+<aside id="settings" class="panel hidden">
+  <header><h2>Settings</h2><button class="x" data-close="settings">×</button></header>
+  <div class="panel-body">
+
+    <section>
+      <h3>Wings</h3>
+      <label class="row"><span>Scale</span>
+        <input type="range" id="setSideScale" min="0.5" max="1" step="0.01" />
+        <output id="outSideScale" class="mono"></output>
+      </label>
+      <label class="row"><span>Fold</span>
+        <input type="range" id="setFold" min="0" max="62" step="1" />
+        <output id="outFold" class="mono"></output>
+      </label>
+      <label class="row"><span>Depth</span>
+        <input type="range" id="setDepth" min="0.7" max="4" step="0.1" />
+        <output id="outDepth" class="mono"></output>
+      </label>
+      <label class="row"><span>Shade</span>
+        <input type="range" id="setDim" min="0" max="0.9" step="0.01" />
+        <output id="outDim" class="mono"></output>
+      </label>
+      <label class="row"><span>Fit</span>
+        <select id="setFit">
+          <option value="fill">fill the flap</option>
+          <option value="contain">whole slide, no stretch</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h3>Web embed</h3>
+      <label class="row col"><span>Page</span>
+        <input type="text" id="setWebEmbed" placeholder="https://…" spellcheck="false" />
+      </label>
+      <label class="row check"><input type="checkbox" id="setWebEmbedBlank" /><span>Fill blank slides with it</span></label>
+      <label class="row"><span>Zoom out</span>
+        <input type="range" id="setEmbedZoom" min="1" max="4" step="0.1" />
+        <output id="outEmbedZoom" class="mono"></output>
+      </label>
+      <label class="row"><span>Preload</span>
+        <input type="range" id="setEmbedPreload" min="0" max="99" step="1" />
+        <output id="outEmbedPreload" class="mono"></output>
+      </label>
+      <p class="hint">A slide left empty in the deck becomes a live page. Point a
+      particular slide at its own page in <code>embeds.json</code>, or put
+      <code>embed: https://…</code> in that slide's speaker notes. Zooming out gives the
+      frame a bigger viewport and scales it down, so you see more of the page. Preload loads
+      a page while its slide is still that many slides away, so it is ready when you arrive
+      — at the cost of the page being open early. It takes
+      the mouse so you can drive it; <b>v</b> hands clicks back to the deck.</p>
+    </section>
+
+    <section>
+      <h3>Video</h3>
+      <label class="row check"><input type="checkbox" id="setVideoAuto" /><span>Play on arrival</span></label>
+      <label class="row check"><input type="checkbox" id="setVideoLoop" /><span>Loop</span></label>
+
+      <button class="wide" id="btnCacheVideos">Cache linked clips locally</button>
+
+    </section>
+
+    <section>
+      <h3>Motion</h3>
+      <label class="row"><span>Rotate</span>
+        <input type="range" id="setRotateMs" min="120" max="1600" step="20" />
+        <output id="outRotateMs" class="mono"></output>
+      </label>
+      <label class="row"><span>Within-slide</span>
+        <input type="range" id="setStepMs" min="0" max="900" step="10" />
+        <output id="outStepMs" class="mono"></output>
+      </label>
+      <label class="row"><span>Within-slide style</span>
+        <select id="setStepStyle">
+          <option value="crossfade">crossfade</option>
+          <option value="cut">cut</option>
+          <option value="lift">lift + fade</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h3>Layout</h3>
+      <label class="row"><span>Background</span>
+        <input type="color" id="setBg" />
+      </label>
+      <button class="wide" id="btnResetPanes">Reset pane widths (r)</button>
+    </section>
+
+    <section>
+      <h3>Stacking</h3>
+      <label class="row"><span>Threshold</span>
+        <input type="range" id="setThreshold" min="0.60" max="0.99" step="0.005" />
+        <output id="outThreshold" class="mono"></output>
+      </label>
+      <p class="hint">Higher stacks fewer slides automatically. Stacking by hand always wins.</p>
+      <button class="wide" id="btnClearOverrides">Reset stacking</button>
+    </section>
+
+  </div>
+</aside>
+
+<script>
+  // If the module fails to boot, say so — a dead input field looks like nothing
+  // happening, which is the worst way for this to fail.
+  addEventListener('error', (event) => {
+    const note = document.getElementById('askError');
+    if (!note) return;
+    note.textContent = String(event.message || 'Triptych failed to start.');
+    note.classList.remove('hidden');
+  });
+</script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

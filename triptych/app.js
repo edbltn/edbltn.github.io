@@ -199,7 +199,7 @@ async function loadPdf(source, name) {
   document.title = deckName + ' — Triptych';
   dirty = true;
   buildTimeline();
-  $('timeline').classList.remove('hidden');   // arrange first, then present
+  showSetup();                                 // arrange first, then present
 }
 
 function setLoadProgress(i, n) {
@@ -1121,10 +1121,10 @@ function cardEl(page, stackSize) {
   card.className = 'card';
   card.dataset.page = String(page);
   card.title = stackSize > 1
-    ? 'Drag into a gap to unstack'
-    : 'Drag onto the next slide to stack';
+    ? 'Click to present from here, drag into a gap to unstack'
+    : 'Click to present from here, drag onto the next slide to stack';
   card.innerHTML = `<img src="${pages[page].thumb}" alt=""><b>${page + 1}</b>`;
-  card.addEventListener('click', () => { if (!dragging) goToPage(page); });
+  card.addEventListener('click', () => { if (!dragging) present(page); });
   card.addEventListener('pointerdown', (e) => beginDrag(e, card, page));
   return card;
 }
@@ -1247,9 +1247,7 @@ function markCurrentInTimeline() {
     card.classList.toggle('current', on);
     if (on) active = card;
   }
-  if (active && !$('timeline').classList.contains('hidden')) {
-    active.scrollIntoView({ block: 'nearest', inline: 'center' });
-  }
+  if (active && inSetup()) active.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
 
 /* ───────── embeds ───────── */
@@ -1358,12 +1356,25 @@ function togglePanel(id) {
   if (id === 'settings' && !el.classList.contains('hidden')) syncSettingsUI();
 }
 
-function toggleTimeline() {
-  const el = $('timeline');
-  el.classList.toggle('hidden');
-  if (!el.classList.contains('hidden')) markCurrentInTimeline();
+/* Two states, and only two: setting the deck up, or presenting it. The timeline
+ * belongs to the first — it is where the deck is arranged, not something to
+ * consult mid-talk. */
+function showSetup() {
+  $('timeline').classList.toggle('hidden', !pages.length);
+  dropzone.classList.remove('hidden');
+  $('settings').classList.add('hidden');
+  if (pages.length) markCurrentInTimeline();
   dirty = true;
 }
+
+function present(page) {
+  if (!pages.length) return;
+  if (page !== undefined) goToPage(page);
+  dropzone.classList.add('hidden');
+  dirty = true;
+}
+
+const inSetup = () => !dropzone.classList.contains('hidden');
 document.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => $(b.dataset.close).classList.add('hidden')));
 
@@ -1404,37 +1415,34 @@ async function openFiles(list) {
 
 $('fileInput').addEventListener('change', (e) => openFiles(e.target.files));
 dropzone.addEventListener('click', (e) => { if (e.target === dropzone) $('fileInput').click(); });
+$('gsInput').addEventListener('input', clearLoadError);
 
 ['dragenter', 'dragover'].forEach(t => window.addEventListener(t, (e) => {
   e.preventDefault();
-  dropzone.classList.remove('hidden');
-  dropzone.classList.add('dragover');
+  document.body.classList.add('dropping');
 }));
 window.addEventListener('dragleave', (e) => {
-  if (e.relatedTarget) return;
-  dropzone.classList.remove('dragover');
-  if (pages.length) dropzone.classList.add('hidden');
+  if (!e.relatedTarget) document.body.classList.remove('dropping');
 });
 window.addEventListener('drop', (e) => {
   e.preventDefault();
-  dropzone.classList.remove('dragover');
-  const files = [...(e.dataTransfer.files || [])]
-    .filter(f => /\.(pdf|pptx)$/i.test(f.name));
+  document.body.classList.remove('dropping');
+  const files = [...(e.dataTransfer.files || [])].filter(f => /\.(pdf|pptx)$/i.test(f.name));
   if (files.length) openFiles(files);
-  else if (pages.length) dropzone.classList.add('hidden');
 });
 
 function reportLoadError(err) {
   console.error(err);
   $('loading').classList.add('hidden');
-  dropzone.classList.remove('hidden');
-  dropzone.querySelector('.dz-sub').innerHTML =
-    `<span style="color:#e06c6c">${escapeHtml(String(err.message || err))}</span> ` +
-    `<label class="link" for="fileInput">Try again</label>.`;
+  showSetup();
+  const note = $('askError');
+  note.textContent = String(err.message || err);
+  note.classList.remove('hidden');
+  $('gsInput').focus();
+  $('gsInput').select();
 }
 
-const escapeHtml = (s) => s.replace(/[&<>"]/g, c =>
-  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function clearLoadError() { $('askError').classList.add('hidden'); }
 
 const refreshEmbedsSoon = debounce(() => refreshEmbeds(), 700);
 
@@ -1524,42 +1532,67 @@ async function freshFromGoogle(talk) {
 /* The browser can't fetch docs.google.com itself, so serve.py hands both
  * exports back from this origin: the PDF draws the slides, the PPTX carries
  * the video links. One live deck, so the two always agree on slide count. */
+/** A deck id out of anything Google might hand you. */
+function deckIdFrom(value) {
+  const text = String(value || '').trim();
+  const inUrl = /\/presentation\/d\/(?:e\/)?([A-Za-z0-9_-]{10,120})/.exec(text);
+  if (inUrl) return inUrl[1];
+  return /^[A-Za-z0-9_-]{10,120}$/.test(text) ? text : null;
+}
+
+/* Google's export endpoints send CORS headers, so the browser can fetch them
+ * itself — which is what makes this work on a static host, where serve.py and
+ * its /gslides is not there to ask. The proxy stays as the fallback for a
+ * network that blocks the direct call. */
 async function openGoogleSlides(link) {
-  const id = encodeURIComponent(String(link || '').trim());
-  if (!id) return;
-  const api = (fmt) => `/gslides?fmt=${fmt}&id=${id}`;
+  const id = deckIdFrom(link);
+  if (!id) return reportLoadError(new Error('That is not a Google Slides link.'));
 
   dropzone.classList.add('hidden');
   $('loading').classList.remove('hidden');
-  $('loadTitle').textContent = 'Fetching from Google Slides…';
+  $('loadTitle').textContent = 'Fetching from Google Slides';
+  setLoadProgress(0, 0);
+
+  const routes = [
+    (fmt) => `https://docs.google.com/presentation/d/${id}/export/${fmt}`,
+    (fmt) => `/gslides?fmt=${fmt}&id=${encodeURIComponent(id)}`,
+  ];
+
+  const grab = async (fmt, optional) => {
+    let last = null;
+    for (const route of routes) {
+      try {
+        const res = await fetch(route(fmt), { cache: 'no-store' });
+        if (res.ok) return await res.arrayBuffer();
+        last = new Error(res.status === 404 || res.status === 403
+          ? 'Google would not hand over that deck. Share it with anyone who has the link.'
+          : `Google Slides returned ${res.status}.`);
+      } catch (err) {
+        last = err;
+      }
+    }
+    if (optional) return null;
+    throw last || new Error('Could not reach Google Slides.');
+  };
 
   try {
-    const res = await withTimeout(fetch(api('pdf')), 90000,
-      'Google Slides did not answer in 90s — check the share setting and your connection');
-    if (!res.ok) throw new Error(await res.text() || `Google Slides fetch failed (${res.status})`);
-    $('loadTitle').textContent = 'Reading the deck…';
-
+    const pdf = await grab('pdf');
     mediaByPage = [];
     pptxNote = '';
-    await loadPdf({ data: new Uint8Array(await res.arrayBuffer()) }, 'Google Slides deck');
+    mediaCacheBase = '/';
+    await loadPdf({ data: new Uint8Array(pdf) }, 'Google Slides deck');
 
-    const deck = await fetch(api('pptx'));
-    if (deck.ok) await attachPptx(await deck.arrayBuffer(), 'Google Slides deck');
+    const pptx = await grab('pptx', true);
+    if (pptx) await attachPptx(pptx, 'Google Slides deck');
+    buildTimeline();
   } catch (err) {
     reportLoadError(err);
   }
 }
 
-/** A fetch that never settles reads as a frozen app; make it say so instead. */
-function withTimeout(promise, ms, message) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
-  ]);
-}
-
 $('gsForm').addEventListener('submit', (e) => {
   e.preventDefault();
+  clearLoadError();
   openGoogleSlides($('gsInput').value);
 });
 
@@ -1602,13 +1635,19 @@ window.addEventListener('keydown', (e) => {
   const k = e.key;
 
   if (k === 'Escape') {
-    $('settings').classList.add('hidden');
-    $('timeline').classList.add('hidden');
+    if (!$('settings').classList.contains('hidden')) $('settings').classList.add('hidden');
+    else if (inSetup()) present();
+    else showSetup();
     dirty = true;
     return;
   }
   if (!pages.length) return;
 
+  // in setup, the deck is arranged rather than driven; one key starts the talk
+  if (inSetup()) {
+    if (k === 'ArrowRight' || k === ' ' || k === 'Enter') { e.preventDefault(); present(); }
+    return;
+  }
   switch (k) {
     case 'ArrowRight': case ' ': case 'PageDown': case 'n':
       e.preventDefault(); e.shiftKey ? nextSlide() : next(); break;
@@ -1618,7 +1657,7 @@ window.addEventListener('keydown', (e) => {
     case 'ArrowUp': e.preventDefault(); prevSlide(); break;
     case 'Home': e.preventDefault(); goToPage(0); break;
     case 'End': e.preventDefault(); goToPage(pages.length - 1); break;
-    case 'g': toggleTimeline(); break;
+
     case 's': togglePanel('settings'); break;
     case 'o': $('fileInput').click(); break;
     case 'm': toggleSound(); break;
