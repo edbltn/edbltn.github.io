@@ -1,0 +1,98 @@
+@font-face {
+  font-family: "Bodoni Moda";
+  src: url("assets/bodoni-moda.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url("../assets/PublicSans-VariableFont_wght.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --ink: #20344d;
+  --butter: #fff3bc;
+  --sky: #bde8fa;
+  --pink: #f6a9b8;
+  --mint: #a8d9bf;
+}
+* { box-sizing: border-box; }
+html { background: var(--sky); }
+body { margin: 0; color: var(--ink); font-family: "Public Sans", sans-serif; }
+.world {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--butter);
+}
+.pattern, .glow { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.pattern {
+  background: url("assets/pacifier-pattern.png") center top / 680px repeat;
+  opacity: .86;
+}
+.glow {
+  background: radial-gradient(ellipse 34% 65% at 50% 43%, #fff3bc 0%, #fff3bce0 40%, #fff3bc00 100%);
+}
+.greeting { text-align: center; padding: 2.6rem 1rem 0; z-index: 1; }
+.hello { margin: 0 0 .1rem; font-size: 1rem; letter-spacing: .03em; }
+h1 {
+  margin: 0;
+  font-family: "Bodoni Moda", "Bodoni 72", Didot, serif;
+  font-weight: 500;
+  font-optical-sizing: auto;
+  font-size: clamp(7rem, 19vw, 17rem);
+  line-height: .95;
+  letter-spacing: -.07em;
+  text-transform: uppercase;
+  transform: scaleX(.7);
+}
+.period { color: var(--ink); }
+.portrait {
+  position: relative;
+  margin: -1.25rem 0 -1rem;
+  width: min(39rem, 92vw);
+  z-index: 2;
+}
+.portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: radial-gradient(ellipse closest-side, #000 76%, #0000 100%);
+  animation: arrive 1000ms ease-out both;
+}
+.signoff { text-align: center; padding: 0 1.5rem 2rem; margin-top: auto; z-index: 3; }
+.signoff p {
+  font-family: "Bodoni Moda", "Bodoni 72", Didot, serif;
+  font-size: clamp(1.25rem, 2.3vw, 1.6rem);
+  margin: 0 0 1.15rem;
+  line-height: 1.4;
+}
+.signoff a { color: inherit; font-size: .875rem; text-underline-offset: .3em; text-decoration-thickness: 1px; }
+.signoff a:hover { text-decoration-thickness: 2px; }
+.signoff a:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; border-radius: 2px; }
+@keyframes arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (min-width: 800px) {
+  .greeting { padding-top: 2rem; }
+  h1 { font-size: clamp(10rem, 17vw, 15rem); }
+  .portrait { width: min(42rem, 70vh); margin-top: -1.4rem; }
+  .signoff { padding-bottom: 1.6rem; }
+}
+@media (max-width: 480px) {
+  .greeting { padding-top: 2.25rem; }
+  h1 { font-size: 31vw; }
+  .pattern { background-size: 450px; }
+  .glow { background: radial-gradient(ellipse 65% 58% at 50% 43%, #fff3bc 0%, #fff3bcd4 36%, #fff3bc00 100%); }
+  .portrait { width: 100%; margin-top: -.25rem; }
+  .signoff { padding-top: .4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait img { animation: none; }
+}
