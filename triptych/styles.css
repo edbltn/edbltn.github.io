@@ -300,14 +300,27 @@ button.wide:hover { border-color: var(--accent); }
   background: var(--accent);
 }
 
+/* Between two slides: nothing, until a card is in hand — then the gaps it can
+   be dropped into to leave its stack draw a hairline, and the one the card
+   would land in lights up. The same hairline the dividers use. */
 .gap {
+  position: relative;
   flex: none;
   width: 16px;
   align-self: stretch;
   min-height: 74px;
-  border-radius: 3px;
 }
-.gap.target { background: rgba(201, 162, 39, 0.35); }
+.gap::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 2px; margin-left: -1px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 120ms ease, box-shadow 120ms ease;
+}
+.gap.droppable::before { opacity: 0.32; }
+.gap.target::before { opacity: 1; box-shadow: 0 0 12px rgba(201, 162, 39, 0.5); }
 
 .slot .embed {
   position: absolute;

@@ -1176,7 +1176,9 @@ function beginDrag(event, card, page) {
   if (event.button !== 0) return;
   event.preventDefault();
   const startX = event.clientX, startY = event.clientY;
-  card.setPointerCapture(event.pointerId);
+  // capture keeps the moves coming once the cursor leaves the card; a pointer
+  // already gone by the time this runs refuses it, which is not fatal
+  try { card.setPointerCapture(event.pointerId); } catch { /* pointer already up */ }
 
   const move = (e) => {
     if (!dragging) {
@@ -1187,6 +1189,8 @@ function beginDrag(event, card, page) {
       document.body.classList.add('dragging-card');
       card.classList.add('dragging');
       dragging = { page, card, ghost };
+      // show where this card can be dropped to leave its stack
+      for (const gap of unstackGaps(page)) gap.classList.add('droppable');
     }
     dragging.ghost.style.left = (e.clientX - 66) + 'px';
     dragging.ghost.style.top = (e.clientY - 40) + 'px';
@@ -1203,6 +1207,7 @@ function beginDrag(event, card, page) {
     dragging.ghost.remove();
     card.classList.remove('dragging');
     document.body.classList.remove('dragging-card');
+    for (const gap of stripEl().querySelectorAll('.droppable')) gap.classList.remove('droppable');
     highlight(null);
     dragging = null;
 
@@ -1215,28 +1220,54 @@ function beginDrag(event, card, page) {
   card.addEventListener('pointercancel', end);
 }
 
+/* The gaps a card can be dropped into to leave its stack: the two on either
+ * side of the slide it belongs to, whichever card of that stack it is. A card
+ * that is already a slide on its own has nothing to leave, and no gap. */
+function unstackGaps(page) {
+  const strip = stripEl();
+  const slide = slideOfPage(page);
+  if (!(slides[slide]?.length > 1)) return [];
+  const slot = strip.querySelector(`.slot[data-slide="${slide}"]`);
+  if (!slot) return [];
+  const first = Number(slot.dataset.first), last = Number(slot.dataset.last);
+  return [...strip.querySelectorAll('.gap')].filter(gap => {
+    const before = Number(gap.dataset.before);
+    return before === first || before === last + 1;
+  });
+}
+
+/* A gap is 16px of nothing, which is a small thing to hit with a card in hand,
+ * so the nearest one wins from this far away — measured from its centre line,
+ * which is where the bar is drawn. */
+const GAP_REACH = 44;
+
+function nearestGap(x, y, page) {
+  let best = null;
+  for (const gap of unstackGaps(page)) {
+    const box = gap.getBoundingClientRect();
+    if (y < box.top - GAP_REACH || y > box.bottom + GAP_REACH) continue;
+    const dx = Math.abs(x - (box.left + box.width / 2));
+    if (dx <= GAP_REACH && (!best || dx < best.dx)) best = { kind: 'gap', el: gap, dx };
+  }
+  return best;
+}
+
 /* A page can only join the slide before or after it, because the deck's order
  * is the deck's order. Anything else is not a target. */
 function dropTarget(x, y, page) {
-  const under = document.elementFromPoint(x, y);
-  if (!under) return null;
-
-  const slot = under.closest('.slot');
+  const slot = document.elementFromPoint(x, y)?.closest('.slot');
   if (slot) {
     const first = Number(slot.dataset.first), last = Number(slot.dataset.last);
-    if (page >= first && page <= last) return null;              // already here
-    if (page === last + 1 || page === first - 1) {
-      return { kind: 'slot', page: page === last + 1 ? last : first, el: slot };
+    if (page < first || page > last) {
+      if (page === last + 1 || page === first - 1) {
+        return { kind: 'slot', page: page === last + 1 ? last : first, el: slot };
+      }
+      return null;                                   // not a neighbouring slide
     }
-    return null;
+    // over its own slide: the gaps on either side are still within reach, which
+    // is what makes a card in the middle of a stack draggable out at all
   }
-
-  const gap = under.closest('.gap');
-  if (gap && slides[slideOfPage(page)]?.length > 1) {
-    const before = Number(gap.dataset.before);
-    if (before === page || before === page + 1) return { kind: 'gap', el: gap };
-  }
-  return null;
+  return nearestGap(x, y, page);
 }
 
 function highlight(target) {
