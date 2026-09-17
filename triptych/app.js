@@ -120,6 +120,11 @@ async function loadPdf(source, name) {
   const n = doc.numPages;
   const out = [];
 
+  // Google's export names the PDF after the deck, which is the name worth showing
+  const meta = await doc.getMetadata().catch(() => null);
+  const named = String(meta?.info?.Title || '').trim();
+  if (named && !/^untitled/i.test(named)) deckName = named;
+
   const hashCanvas = document.createElement('canvas');
   hashCanvas.width = hashCanvas.height = HASH_N;
   const hashCtx = hashCanvas.getContext('2d', { willReadFrequently: true });
@@ -950,6 +955,8 @@ async function attachDeck(deck, name) {
       get media() { return mediaByPage.map((m, i) => ({ page: i + 1, items: m })); },
       get slides() { return slides; },
       get config() { return embedConfig; },
+      get embeds() { return deckEmbeds; },
+      get key() { return deckKey; },
     };
   }
   return total;
@@ -1252,11 +1259,19 @@ function markCurrentInTimeline() {
 
 /* ───────── embeds ───────── */
 
+/* The field floats above the card in a fixed layer: the strip it lives in
+ * scrolls, so anything positioned inside it is clipped at the strip's top edge. */
 function askForEmbed(slot, page) {
-  slot.querySelector('.embed-field')?.remove();
+  // an open field closes itself on blur; blurring first keeps the two removals apart
+  document.querySelector('.embed-field input')?.blur();
+  document.querySelector('.embed-field')?.remove();
 
   const field = document.createElement('div');
   field.className = 'embed-field';
+  const box = slot.getBoundingClientRect();
+  const width = 340;
+  field.style.left = Math.max(8, Math.min(box.left, innerWidth - width - 8)) + 'px';
+  field.style.bottom = (innerHeight - box.top + 8) + 'px';
   const input = document.createElement('input');
   input.type = 'text';
   input.spellcheck = false;
@@ -1264,11 +1279,17 @@ function askForEmbed(slot, page) {
   input.value = deckEmbeds[page] || '';
   input.title = 'Enter to set, empty to remove';
   field.appendChild(input);
-  slot.appendChild(field);
+  document.body.appendChild(field);
   input.focus();
   input.select();
 
-  const close = () => field.remove();
+  const strip = stripEl();
+  const close = () => {
+    input.removeEventListener('blur', close);
+    strip.removeEventListener('scroll', close);
+    field.remove();
+  };
+  strip.addEventListener('scroll', close);
   input.addEventListener('keydown', (e) => {
     e.stopPropagation();
     if (e.key === 'Escape') close();
@@ -1276,6 +1297,7 @@ function askForEmbed(slot, page) {
     const url = input.value.trim();
     if (url) deckEmbeds[page] = /^https?:\/\//.test(url) ? url : 'https://' + url;
     else delete deckEmbeds[page];
+    close();
     saveDeck();
     applyEmbeds();
     buildTimeline();
@@ -1593,10 +1615,78 @@ async function openGoogleSlides(link) {
     const pptx = await grab('pptx', true);
     if (pptx) await attachPptx(pptx, 'Google Slides deck');
     buildTimeline();
+
+    if (!$('gsInput').value.trim()) {
+      $('gsInput').value = `https://docs.google.com/presentation/d/${id}/edit`;
+    }
+    rememberDeck(id, deckName === 'Google Slides deck' ? (pages[0]?.title || id) : deckName);
+    addressDeck(id);
   } catch (err) {
     reportLoadError(err);
   }
 }
+
+/* ───────── decks you have opened ─────────
+ *
+ * A deck pasted in once is worth finding again: it is listed on the setup
+ * screen beside the published talks, and the address bar carries ?gslides=<id>
+ * so the arranged deck is one reload away — no re-pasting. The list lives in
+ * this browser; the arrangement itself is keyed by the deck's content, so it
+ * follows the deck however it is opened. */
+const RECENT_KEY = 'triptych:recent';
+const RECENT_MAX = 12;
+
+/* The player's own directory, wherever this file was served from — which is
+ * also right on a published talk page one level down. */
+const playerUrl = (query) => new URL('./' + query, import.meta.url);
+
+function rememberDeck(id, title) {
+  const list = (readJSON(RECENT_KEY) || []).filter(d => d && d.id !== id);
+  list.unshift({ id, title, at: Date.now() });
+  writeJSON(RECENT_KEY, list.slice(0, RECENT_MAX));
+  renderRecents();
+}
+
+function forgetDeck(id) {
+  writeJSON(RECENT_KEY, (readJSON(RECENT_KEY) || []).filter(d => d && d.id !== id));
+  renderRecents();
+}
+
+function renderRecents() {
+  const nav = $('talks');
+  nav.querySelectorAll('.recent').forEach(el => el.remove());
+  const published = new Set(
+    [...nav.querySelectorAll('a[data-gslides]')].map(a => a.dataset.gslides));
+
+  for (const deck of readJSON(RECENT_KEY) || []) {
+    if (!deck?.id || published.has(deck.id)) continue;
+    const item = document.createElement('span');
+    item.className = 'recent';
+    const link = document.createElement('a');
+    link.href = playerUrl('?gslides=' + encodeURIComponent(deck.id)).toString();
+    link.textContent = deck.title || deck.id;
+    link.title = 'Open the deck, arranged as you left it';
+    const forget = document.createElement('button');
+    forget.type = 'button';
+    forget.className = 'forget';
+    forget.textContent = '×';
+    forget.title = 'Remove from this list';
+    forget.addEventListener('click', (e) => { e.preventDefault(); forgetDeck(deck.id); });
+    item.append(link, forget);
+    nav.appendChild(item);
+  }
+}
+
+function addressDeck(id) {
+  const url = playerUrl('');
+  const query = new URLSearchParams(location.search);
+  for (const key of ['src', 'pptx', 'talk']) query.delete(key);
+  query.set('gslides', id);
+  url.search = query.toString();
+  if (url.href !== location.href) history.replaceState(null, '', url);
+}
+
+renderRecents();
 
 $('gsForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -1615,13 +1705,12 @@ const webParam = params.get('web');
 if (webParam) { settings.webEmbed = webParam; saveSettings(); }
 
 /* A published talk: ?talk=<slug>, or a page that names one directly. */
+const gslides = params.get('gslides');
 const talkParam = params.get('talk') || window.TRIPTYCH_TALK;
-if (talkParam) {
+if (gslides) openGoogleSlides(gslides);
+else if (talkParam) {
   openTalk(/^https?:|^\.|^\//.test(talkParam) ? talkParam : `talks/${talkParam}`);
 }
-
-const gslides = params.get('gslides');
-if (gslides) openGoogleSlides(gslides);
 const src = params.get('src');
 if (src) {
   loadPdf({ url: src }, src.split('/').pop())

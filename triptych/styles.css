@@ -160,6 +160,14 @@ body.dropping::after {
 .talks:empty { display: none; }
 .talks a { color: var(--dim); text-decoration: none; font-size: 13px; }
 .talks a:hover { color: var(--accent); }
+/* decks this browser has opened, beside the published talks */
+.talks .recent { display: inline-flex; align-items: baseline; gap: 4px; }
+.talks .forget {
+  background: none; border: none; padding: 0 2px; cursor: pointer;
+  color: var(--line); font: inherit; font-size: 14px; line-height: 1;
+}
+.talks .recent:hover .forget { color: var(--dim); }
+.talks .forget:hover { color: var(--ink); }
 
 .ask-error { color: #e06c6c; font-size: 12px; margin: 14px 0 0; max-width: min(620px, 82vw); }
 
@@ -319,12 +327,12 @@ button.wide:hover { border-color: var(--accent); }
 .slot:hover .embed, .slot.has-embed .embed { opacity: 1; }
 .slot .embed:hover { color: var(--ink); border-color: var(--accent); }
 
+/* floats above the card, outside the strip — which scrolls, and so clips */
 .embed-field {
-  position: absolute;
-  left: 0; bottom: calc(100% + 8px);
+  position: fixed;
   width: 340px;
   display: flex;
-  z-index: 3;
+  z-index: 80;
 }
 .embed-field input {
   flex: 1; min-width: 0;
