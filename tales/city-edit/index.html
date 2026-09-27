@@ -2,26 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- interactive-widget: Android Chrome shrinks the layout viewport when the
-         keyboard opens, so fixed-bottom UI stays visible; iOS is handled by the
-         visualViewport listener (useKeyboardInset). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-    <!-- warm up DNS+TLS to the backend while the JS bundle loads -->
     <link rel="preconnect" href="https://tales-backend-katze52zaq-uc.a.run.app" />
-    <title>Tales</title>
+    <title>City Edit</title>
     <script type="module" crossorigin src="/tales/assets/index-T4eMp--q.js"></script>
     <script type="module" crossorigin src="/tales/assets/base-DNgbBQ7e.js"></script>
     <script type="module" crossorigin src="/tales/assets/Wordmark-DwHdSbo6.js"></script>
     <script type="module" crossorigin src="/tales/assets/main-vQLLiGB8.js"></script>
-    <link rel="stylesheet" crossorigin href="/tales/assets/main-DZnr3ibB.css">
     <link rel="stylesheet" crossorigin href="/tales/assets/base-B86o0Z7Z.css">
     <link rel="stylesheet" crossorigin href="/tales/assets/Wordmark-BXmAToEB.css">
+    <link rel="stylesheet" crossorigin href="/tales/assets/main-DZnr3ibB.css">
   </head>
   <body>
-    <!-- v2 — "phased beam". Moved here from / when the lobby took over the
-         front door; the lobby is at /, v1 at /1/. Third entry point of the same
-         Vite build, so everything the versions share is emitted once into
-         /assets/. Nothing under src/v2/ moved — only this path. -->
     <div id="root"></div>
   </body>
 </html>
