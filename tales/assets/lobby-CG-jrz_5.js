@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";import{a as o,j as t,R as r}from"./index-CWGbJcMJ.js";import{A as e}from"./lobby-Czuodira.js";import"./CityEditTiles-CDU7_cS6.js";o(document.getElementById("root")).render(t.jsx(r.StrictMode,{children:t.jsx(e,{})}));

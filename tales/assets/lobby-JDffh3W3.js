@@ -1,0 +1,1 @@
+import{a as e,j as t,R as r}from"./index-CWGbJcMJ.js";import{A as o}from"./lobby-Czuodira.js";import"./CityEditTiles-CDU7_cS6.js";const s="/tales/",a=Object.freeze({ext:"city-edit:prod:",entryPath:`${s}city-edit/`});e(document.getElementById("root")).render(t.jsx(r.StrictMode,{children:t.jsx(o,{partner:a})}));
